@@ -234,9 +234,9 @@ function HRMonitor() {
   }, [isHRVTesting, hrvTestStart, hrvReadings]);
 
   return (
-    <div className="container">
+    <div className="hr-monitor">
       <header className="header">
-        <h1>❤️ Heart Rate Monitor</h1>
+        <h1>Heart Rate Monitor</h1>
       </header>
 
       <main className="main-content">
@@ -250,7 +250,6 @@ function HRMonitor() {
 
         {error && (
           <div className="error-message">
-            <span className="error-icon">⚠️</span>
             {error}
           </div>
         )}
@@ -271,15 +270,15 @@ function HRMonitor() {
 
         {!isConnected && !error && (
           <div className="info-message">
-            <p>📱 Make sure your heart rate monitor is turned on and in pairing mode</p>
-            <p>🔒 This app requires a browser with Web Bluetooth support (Chrome or Edge)</p>
-            <p>🐧 Linux users: Enable Web Bluetooth at <code>chrome://flags#enable-experimental-web-platform-features</code></p>
+            <p>Make sure your heart rate monitor is turned on and in pairing mode</p>
+            <p>This app requires a browser with Web Bluetooth support (Chrome or Edge)</p>
+            <p>Linux users: Enable Web Bluetooth at <code>chrome://flags#enable-experimental-web-platform-features</code></p>
           </div>
         )}
       </main>
 
       <footer className="footer">
-        <p>Powered by Web Bluetooth API</p>
+        <p>© 2025. Licensed under MIT.</p>
       </footer>
     </div>
   );

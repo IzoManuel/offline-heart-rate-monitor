@@ -4,6 +4,7 @@
   "description": "Web Bluetooth Heart Rate Monitor SPA",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

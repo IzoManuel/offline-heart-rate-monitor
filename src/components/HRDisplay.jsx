@@ -7,9 +7,6 @@ function HRDisplay({ currentHR }) {
         <div className="hr-value">{currentHR}</div>
         <div className="hr-unit">BPM</div>
       </div>
-      <div className="heartbeat-icon">
-        {currentHR > 0 && <span className="pulse">💓</span>}
-      </div>
     </div>
   );
 }

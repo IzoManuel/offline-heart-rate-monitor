@@ -3,7 +3,6 @@ import React from 'react';
 function Stats({ stats, readingsCount }) {
   return (
     <div className="stats-section">
-      <h2 className="stats-title">Session Statistics</h2>
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-label">Average</div>

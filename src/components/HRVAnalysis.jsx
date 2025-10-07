@@ -43,7 +43,7 @@ function HRVAnalysis({
 
   return (
     <div className="hrv-section">
-      <h2>❤️ HRV Analysis</h2>
+      <h2>HRV Analysis</h2>
 
       {/* Idle State - Ready to start test */}
       {!testState.isRunning && !results && (
@@ -55,7 +55,7 @@ function HRVAnalysis({
             Start HRV Test (2 min)
           </button>
           <p className="hrv-note">
-            📝 Note: Requires RR interval data from your heart rate monitor
+            Requires RR interval data from your heart rate monitor
           </p>
         </div>
       )}
@@ -63,7 +63,7 @@ function HRVAnalysis({
       {/* Testing State - Collection in progress */}
       {testState.isRunning && (
         <div className="hrv-testing">
-          <p className="hrv-status">📊 Collecting RR intervals...</p>
+          <p className="hrv-status">Collecting RR intervals...</p>
 
           <div className="hrv-progress-container">
             <div className="hrv-progress-bar">
@@ -73,12 +73,12 @@ function HRVAnalysis({
               />
             </div>
             <p className="hrv-countdown">
-              {formatTime(testState.duration - testState.elapsed)} remaining
+              {formatTime(testState.duration - testState.elapsed)}
             </p>
           </div>
 
           <div className="hrv-rr-count">
-            <span className="hrv-label">RR intervals collected:</span>
+            <span className="hrv-label">RR intervals:</span>
             <span className="hrv-value">{testState.rrCount}</span>
           </div>
 
