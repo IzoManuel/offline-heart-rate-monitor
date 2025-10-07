@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ConnectionButton from './ConnectionButton';
 import HRDisplay from './HRDisplay';
 import Stats from './Stats';
@@ -8,6 +8,7 @@ import {
   stopHeartRateNotifications,
   disconnectDevice
 } from '../utils/bluetooth';
+import debugRecorder from '../utils/debugBluetooth';
 
 function HRMonitor() {
   const [isConnected, setIsConnected] = useState(false);
@@ -18,6 +19,7 @@ function HRMonitor() {
   const [error, setError] = useState('');
   const [server, setServer] = useState(null);
   const [characteristic, setCharacteristic] = useState(null);
+  const isPlaybackMode = useRef(false);
 
   // Calculate statistics
   const stats = React.useMemo(() => {
@@ -37,6 +39,50 @@ function HRMonitor() {
 
     return { average, max, min };
   }, [heartRateReadings]);
+
+  // Expose playback function to window for console access
+  useEffect(() => {
+    window.hrPlayback = {
+      start: async () => {
+        try {
+          const sessionData = await debugRecorder.loadRecording();
+
+          // Set up playback mode
+          isPlaybackMode.current = true;
+          setDeviceName(sessionData.deviceName + ' (Playback)');
+          setIsConnected(true);
+          setCurrentHR(0);
+          setHeartRateReadings([]);
+          setError('');
+
+          // Start playback
+          debugRecorder.startPlayback(
+            sessionData,
+            (data) => {
+              // Playback reading callback
+              setCurrentHR(data.heartRate);
+              setHeartRateReadings(prev => [...prev, data.heartRate]);
+            },
+            () => {
+              // Playback end callback
+              console.log('📊 Playback completed');
+              setDeviceName(prev => prev + ' - Completed');
+            }
+          );
+        } catch (error) {
+          setError('Failed to load recording: ' + error.message);
+          console.error('Playback error:', error);
+        }
+      },
+      stop: () => {
+        handleDisconnect();
+      }
+    };
+
+    return () => {
+      delete window.hrPlayback;
+    };
+  }, []);
 
   // Handle disconnection events
   useEffect(() => {
@@ -64,10 +110,17 @@ function HRMonitor() {
       // Connect to device
       const gattServer = await connectToHeartRateMonitor();
       setServer(gattServer);
-      setDeviceName(gattServer.device.name || 'Unknown Device');
+      const deviceNameStr = gattServer.device.name || 'Unknown Device';
+      setDeviceName(deviceNameStr);
+
+      // Set connected device for debug recorder
+      debugRecorder.setConnectedDevice(deviceNameStr);
 
       // Start receiving heart rate data
       const char = await startHeartRateNotifications(gattServer, (data) => {
+        // Record data for debugging (only if recording is active)
+        debugRecorder.recordReading(data);
+
         setCurrentHR(data.heartRate);
         setHeartRateReadings(prev => [...prev, data.heartRate]);
       });
@@ -84,17 +137,33 @@ function HRMonitor() {
 
   const handleDisconnect = async () => {
     try {
-      if (characteristic) {
-        await stopHeartRateNotifications(characteristic);
+      // Stop debug recording if active
+      if (debugRecorder.getStatus().isRecording) {
+        debugRecorder.stopRecording();
       }
-      if (server) {
-        disconnectDevice(server);
+
+      // Stop playback if active
+      if (isPlaybackMode.current) {
+        debugRecorder.stopPlayback();
+        isPlaybackMode.current = false;
+      } else {
+        // Only disconnect real device if not in playback mode
+        if (characteristic) {
+          await stopHeartRateNotifications(characteristic);
+        }
+        if (server) {
+          disconnectDevice(server);
+        }
       }
+
       setIsConnected(false);
       setCurrentHR(0);
       setDeviceName('');
       setServer(null);
       setCharacteristic(null);
+
+      // Clear connected device from debug recorder
+      debugRecorder.setConnectedDevice('');
     } catch (err) {
       setError('Error disconnecting: ' + err.message);
     }
