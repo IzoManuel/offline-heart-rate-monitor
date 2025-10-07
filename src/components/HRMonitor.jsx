@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import ConnectionButton from './ConnectionButton';
 import HRDisplay from './HRDisplay';
 import Stats from './Stats';
+import HRVAnalysis from './HRVAnalysis';
 import {
   connectToHeartRateMonitor,
   startHeartRateNotifications,
@@ -9,6 +10,7 @@ import {
   disconnectDevice
 } from '../utils/bluetooth';
 import debugRecorder from '../utils/debugBluetooth';
+import { analyzeHRV } from '../utils/hrvCalculations';
 
 function HRMonitor() {
   const [isConnected, setIsConnected] = useState(false);
@@ -20,6 +22,15 @@ function HRMonitor() {
   const [server, setServer] = useState(null);
   const [characteristic, setCharacteristic] = useState(null);
   const isPlaybackMode = useRef(false);
+
+  // HRV test state
+  const [isHRVTesting, setIsHRVTesting] = useState(false);
+  const [hrvTestStart, setHRVTestStart] = useState(null);
+  const [hrvReadings, setHRVReadings] = useState([]);
+  const [hrvResults, setHRVResults] = useState(null);
+  const hrvReadingsRef = useRef([]);
+
+  const HRV_TEST_DURATION = 120000; // 2 minutes in milliseconds
 
   // Calculate statistics
   const stats = React.useMemo(() => {
@@ -123,6 +134,15 @@ function HRMonitor() {
 
         setCurrentHR(data.heartRate);
         setHeartRateReadings(prev => [...prev, data.heartRate]);
+
+        // Collect RR intervals for HRV testing (if test is running and RR data available)
+        if (data.rrIntervals && data.rrIntervals.length > 0) {
+          setHRVReadings(prev => {
+            const newReadings = [...prev, data];
+            hrvReadingsRef.current = newReadings; // Keep ref in sync
+            return newReadings;
+          });
+        }
       });
 
       setCharacteristic(char);
@@ -169,11 +189,54 @@ function HRMonitor() {
     }
   };
 
+  // HRV Test Handlers
+  const handleStartHRVTest = () => {
+    setIsHRVTesting(true);
+    setHRVTestStart(Date.now());
+    setHRVReadings([]);
+    hrvReadingsRef.current = [];
+    setHRVResults(null);
+  };
+
+  const handleStopHRVTest = useCallback(() => {
+    // Use ref to get latest readings without causing re-renders
+    const results = analyzeHRV(hrvReadingsRef.current);
+    setHRVResults(results);
+    setIsHRVTesting(false);
+  }, []);
+
+  // Auto-stop HRV test after duration
+  useEffect(() => {
+    if (!isHRVTesting) return;
+
+    const timer = setTimeout(() => {
+      handleStopHRVTest();
+    }, HRV_TEST_DURATION);
+
+    return () => clearTimeout(timer);
+  }, [isHRVTesting, handleStopHRVTest]);
+
+  // Calculate HRV test state for component
+  const hrvTestState = useMemo(() => {
+    if (!isHRVTesting) {
+      return { isRunning: false, duration: 0, elapsed: 0, rrCount: 0 };
+    }
+
+    const elapsed = Date.now() - hrvTestStart;
+    const rrCount = hrvReadings.flatMap(r => r.rrIntervals || []).length;
+
+    return {
+      isRunning: true,
+      duration: HRV_TEST_DURATION,
+      elapsed,
+      rrCount
+    };
+  }, [isHRVTesting, hrvTestStart, hrvReadings]);
+
   return (
-    <div className="hr-monitor">
+    <div className="container">
       <header className="header">
         <h1>❤️ Heart Rate Monitor</h1>
-        <p className="subtitle">Connect to your BLE heart rate sensor</p>
       </header>
 
       <main className="main-content">
@@ -196,6 +259,13 @@ function HRMonitor() {
           <>
             <HRDisplay currentHR={currentHR} />
             <Stats stats={stats} readingsCount={heartRateReadings.length} />
+            <HRVAnalysis
+              isConnected={isConnected}
+              testState={hrvTestState}
+              results={hrvResults}
+              onStartTest={handleStartHRVTest}
+              onStopTest={handleStopHRVTest}
+            />
           </>
         )}
 
