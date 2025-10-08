@@ -15,6 +15,24 @@ class HRDebugRecorder {
     this.connectedDeviceName = ''; // Store currently connected device name
     this.playbackCallback = null;
     this.playbackDisconnectCallback = null;
+    
+    // UI integration callbacks
+    this.uiCallbacks = null;
+  }
+
+  /**
+   * Register UI callbacks for playback integration
+   * @param {Object} callbacks - UI callback functions
+   */
+  registerUICallbacks(callbacks) {
+    this.uiCallbacks = callbacks;
+  }
+
+  /**
+   * Unregister UI callbacks
+   */
+  unregisterUICallbacks() {
+    this.uiCallbacks = null;
   }
 
   /**
@@ -260,22 +278,67 @@ const debugRecorder = new HRDebugRecorder();
 // Expose to window for console access
 if (typeof window !== 'undefined') {
   window.hrDebug = {
+    // Recording API
     startRecording: (deviceName) => debugRecorder.startRecording(deviceName),
     stopRecording: () => debugRecorder.stopRecording(),
     downloadRecording: () => debugRecorder.downloadRecording(),
+    
+    // Playback API
     loadRecording: () => debugRecorder.loadRecording(),
-    status: () => debugRecorder.getStatus(),
-    setConnectedDevice: (deviceName) => debugRecorder.setConnectedDevice(deviceName),
-
-    // Helper to load and start playback in one command
-    loadAndPlay: async (onReading, onDisconnect) => {
+    loadAndPlay: async () => {
       try {
-        const data = await debugRecorder.loadRecording();
-        debugRecorder.startPlayback(data, onReading, onDisconnect);
+        const sessionData = await debugRecorder.loadRecording();
+        
+        // Call UI callbacks if registered
+        if (debugRecorder.uiCallbacks && debugRecorder.uiCallbacks.onStart) {
+          await debugRecorder.uiCallbacks.onStart(sessionData);
+        }
+        
+        // Start playback with UI callbacks
+        debugRecorder.startPlayback(
+          sessionData,
+          debugRecorder.uiCallbacks ? debugRecorder.uiCallbacks.onReading : null,
+          debugRecorder.uiCallbacks ? debugRecorder.uiCallbacks.onComplete : null
+        );
       } catch (error) {
         console.error('❌ Failed to load recording:', error.message);
+        if (debugRecorder.uiCallbacks && debugRecorder.uiCallbacks.onError) {
+          debugRecorder.uiCallbacks.onError(error);
+        }
       }
-    }
+    },
+    play: async (sessionData) => {
+      try {
+        // Call UI callbacks if registered
+        if (debugRecorder.uiCallbacks && debugRecorder.uiCallbacks.onStart) {
+          await debugRecorder.uiCallbacks.onStart(sessionData);
+        }
+        
+        // Start playback with UI callbacks
+        debugRecorder.startPlayback(
+          sessionData,
+          debugRecorder.uiCallbacks ? debugRecorder.uiCallbacks.onReading : null,
+          debugRecorder.uiCallbacks ? debugRecorder.uiCallbacks.onComplete : null
+        );
+      } catch (error) {
+        console.error('❌ Failed to start playback:', error.message);
+        if (debugRecorder.uiCallbacks && debugRecorder.uiCallbacks.onError) {
+          debugRecorder.uiCallbacks.onError(error);
+        }
+      }
+    },
+    stopPlayback: () => {
+      if (debugRecorder.uiCallbacks && debugRecorder.uiCallbacks.onStop) {
+        debugRecorder.uiCallbacks.onStop();
+      }
+      debugRecorder.stopPlayback();
+    },
+    
+    // Status
+    status: () => debugRecorder.getStatus(),
+    
+    // Internal - used by component
+    setConnectedDevice: (deviceName) => debugRecorder.setConnectedDevice(deviceName)
   };
 
   console.log('🔧 HR Debug utilities loaded. Use window.hrDebug for recording/playback.');

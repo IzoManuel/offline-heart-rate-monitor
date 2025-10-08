@@ -51,47 +51,50 @@ function HRMonitor() {
     return { average, max, min };
   }, [heartRateReadings]);
 
-  // Expose playback function to window for console access
+  // Register playback callbacks with debug system
   useEffect(() => {
-    window.hrPlayback = {
-      start: async () => {
-        try {
-          const sessionData = await debugRecorder.loadRecording();
+    // Register UI integration callbacks with hrDebug
+    debugRecorder.registerUICallbacks({
+      onStart: async (sessionData) => {
+        // Set up playback mode
+        isPlaybackMode.current = true;
+        setDeviceName(sessionData.deviceName + ' (Playback)');
+        setIsConnected(true);
+        setCurrentHR(0);
+        setHeartRateReadings([]);
+        setHRVReadings([]);
+        setError('');
+      },
+      onReading: (data) => {
+        // Playback reading callback
+        setCurrentHR(data.heartRate);
+        setHeartRateReadings(prev => [...prev, data.heartRate]);
 
-          // Set up playback mode
-          isPlaybackMode.current = true;
-          setDeviceName(sessionData.deviceName + ' (Playback)');
-          setIsConnected(true);
-          setCurrentHR(0);
-          setHeartRateReadings([]);
-          setError('');
-
-          // Start playback
-          debugRecorder.startPlayback(
-            sessionData,
-            (data) => {
-              // Playback reading callback
-              setCurrentHR(data.heartRate);
-              setHeartRateReadings(prev => [...prev, data.heartRate]);
-            },
-            () => {
-              // Playback end callback
-              console.log('📊 Playback completed');
-              setDeviceName(prev => prev + ' - Completed');
-            }
-          );
-        } catch (error) {
-          setError('Failed to load recording: ' + error.message);
-          console.error('Playback error:', error);
+        // Collect RR intervals for HRV testing (if test is running and RR data available)
+        if (data.rrIntervals && data.rrIntervals.length > 0) {
+          setHRVReadings(prev => {
+            const newReadings = [...prev, data];
+            hrvReadingsRef.current = newReadings; // Keep ref in sync
+            return newReadings;
+          });
         }
       },
-      stop: () => {
+      onComplete: () => {
+        // Playback end callback
+        console.log('📊 Playback completed');
+        setDeviceName(prev => prev + ' - Completed');
+      },
+      onStop: () => {
         handleDisconnect();
+      },
+      onError: (error) => {
+        setError('Failed to load recording: ' + error.message);
+        console.error('Playback error:', error);
       }
-    };
+    });
 
     return () => {
-      delete window.hrPlayback;
+      debugRecorder.unregisterUICallbacks();
     };
   }, []);
 

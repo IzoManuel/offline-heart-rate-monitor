@@ -59,16 +59,12 @@ Your browser will download a file named `hr-session-YYYY-MM-DD-HH-MM-SS.json` co
 
 ## Playing Back a Recording
 
-### Step 1: Make Sure You're Disconnected
+### Load and Play a Recording
 
-If you're connected to a real device, disconnect first using the "Disconnect" button.
-
-### Step 2: Load and Start Playback
-
-In the browser console, run:
+The simplest way to load and play a recording in the browser console:
 
 ```javascript
-window.hrPlayback.start()
+window.hrDebug.loadAndPlay()
 ```
 
 This will:
@@ -76,19 +72,22 @@ This will:
 2. Ask you to select a previously downloaded recording JSON file
 3. Automatically start playback at 1x speed (real-time)
 4. Update the UI as if a real device were connected
+5. Show the device name as `[Device Name] (Playback)`
 
-The device name will show as `[Device Name] (Playback)` to indicate playback mode.
+**Note**: This automatically integrates with the UI. You don't need to be connected to a device first.
 
-### Step 3: Watch the Playback
+### Watch the Playback
 
 The UI will update with each recorded reading at the same intervals they were originally captured. Statistics (average, max, min) will be calculated just like with a real device.
 
-### Step 4: Stop Playback (Optional)
+**HRV Testing During Playback**: If the recording contains RR intervals, you can run HRV tests during playback just like with a real device!
+
+### Stop Playback (Optional)
 
 To stop playback before it finishes:
 
 ```javascript
-window.hrPlayback.stop()
+window.hrDebug.stopPlayback()
 ```
 
 Or simply click the "Disconnect" button in the UI.
@@ -142,9 +141,13 @@ Recordings are saved as JSON files with the following structure:
 
 ## Console API Reference
 
-### `window.hrDebug` (Available when connected to real device)
+### `window.hrDebug` (Complete Debug API)
 
-#### `startRecording([deviceName])`
+All debug functionality is accessible through the `window.hrDebug` namespace.
+
+#### Recording Commands
+
+##### `startRecording([deviceName])`
 Begins capturing heart rate data from the currently connected device.
 
 **Parameters:**
@@ -160,7 +163,7 @@ window.hrDebug.startRecording('My Custom Device')
 // Console: 📹 Recording started for device: My Custom Device
 ```
 
-#### `stopRecording()`
+##### `stopRecording()`
 Stops recording and finalizes the session data.
 
 ```javascript
@@ -168,31 +171,70 @@ window.hrDebug.stopRecording()
 // Console: ⏹️ Stopped recording. Captured 150 readings over 5.0 minutes
 ```
 
-#### `downloadRecording()`
+##### `downloadRecording()`
 Downloads the current recording as a JSON file.
 
 ```javascript
 window.hrDebug.downloadRecording()
-// Downloads: hr-session-2024-10-05-14-30-45.json
+// Downloads: hr-recording-2024-10-05.json
 ```
 
-### `window.hrPlayback` (Always available)
+#### Playback Commands
 
-#### `start()`
-Opens file picker to load a recording and starts playback.
+##### `loadAndPlay()`
+Opens file picker to load a recording and starts playback with automatic UI integration.
 
 ```javascript
-await window.hrPlayback.start()
-// Opens file picker → loads recording → starts playback
-// Console: 📊 Playback completed (when finished)
+window.hrDebug.loadAndPlay()
+// Opens file picker → loads recording → updates UI automatically
 ```
 
-#### `stop()`
+##### `loadRecording()`
+Opens file picker to load a recording and returns the session data without starting playback.
+
+**Use case**: Load once, replay multiple times without re-selecting the file.
+
+```javascript
+const sessionData = await window.hrDebug.loadRecording()
+// Returns the loaded session data object
+console.log(sessionData.deviceName)  // "Polar H10 12345678"
+console.log(sessionData.readingsCount)  // 150
+```
+
+##### `play(sessionData)`
+Starts playback of previously loaded session data.
+
+**Parameters:**
+- `sessionData` (required): Session data object returned by `loadRecording()`
+
+```javascript
+// Advanced workflow: load once, play multiple times
+const data = await window.hrDebug.loadRecording()
+
+// Play it
+window.hrDebug.play(data)
+
+// Later, replay the same data without reloading
+window.hrDebug.stopPlayback()
+window.hrDebug.play(data)  // Plays again from the start
+```
+
+##### `stopPlayback()`
 Stops the current playback session.
 
 ```javascript
-window.hrPlayback.stop()
+window.hrDebug.stopPlayback()
 // Stops playback and disconnects
+```
+
+#### Status
+
+##### `status()`
+Get current recording/playback status.
+
+```javascript
+window.hrDebug.status()
+// Returns: { isRecording: true, isPlaying: false, recordingsCount: 42, playbackIndex: 0 }
 ```
 
 ## Common Workflows
@@ -214,15 +256,51 @@ window.hrDebug.downloadRecording()
 // 5. Disconnect via UI button
 ```
 
-### Testing with a Previous Recording
+### Testing with a Previous Recording (Simple)
 
 ```javascript
-// 1. Make sure you're disconnected
-// 2. Load and play
-await window.hrPlayback.start()
+// Load and play a recording (UI updates automatically)
+window.hrDebug.loadAndPlay()
 
-// 3. Select downloaded JSON file
-// 4. Watch UI update automatically
+// Select downloaded JSON file from the file picker
+// Watch UI update automatically
+
+// Stop if needed
+window.hrDebug.stopPlayback()
+```
+
+### Testing with Repeated Playback (Advanced)
+
+```javascript
+// Load the recording once
+const session = await window.hrDebug.loadRecording()
+
+// Play it the first time
+window.hrDebug.play(session)
+// ... watch playback complete or stop manually ...
+
+// Test different scenarios by replaying
+window.hrDebug.stopPlayback()  // Reset if needed
+window.hrDebug.play(session)   // Replay from start
+
+// Can replay as many times as you want without reloading
+window.hrDebug.play(session)   // Again!
+```
+
+### Inspecting Recording Data
+
+```javascript
+// Load and examine the data structure
+const data = await window.hrDebug.loadRecording()
+
+console.log('Device:', data.deviceName)
+console.log('Duration:', data.duration / 1000, 'seconds')
+console.log('Total readings:', data.readingsCount)
+console.log('First reading:', data.readings[0])
+console.log('Has RR intervals:', data.readings[0].rrIntervals?.length > 0)
+
+// Then play it if desired
+window.hrDebug.play(data)
 ```
 
 ### Creating Multiple Test Scenarios
@@ -272,3 +350,46 @@ The recording only captures data between `startRecording()` and `stopRecording()
 1. You started recording before any readings came in
 2. You waited for at least a few readings (check the UI updates)
 3. You didn't disconnect before stopping the recording
+
+---
+
+## Quick Reference
+
+### Complete API
+
+```javascript
+// Recording
+window.hrDebug.startRecording([deviceName])  // Start capturing
+window.hrDebug.stopRecording()                // Stop capturing
+window.hrDebug.downloadRecording()            // Save to file
+
+// Playback
+window.hrDebug.loadAndPlay()                  // Load + play in one step
+window.hrDebug.loadRecording()                // Load without playing
+window.hrDebug.play(sessionData)              // Play loaded data
+window.hrDebug.stopPlayback()                 // Stop playback
+
+// Status
+window.hrDebug.status()                       // Get current state
+```
+
+### Quick Start
+
+**Record a session:**
+```javascript
+window.hrDebug.startRecording()    // After connecting
+// ... exercise ...
+window.hrDebug.stopRecording()
+window.hrDebug.downloadRecording()
+```
+
+**Replay a session:**
+```javascript
+window.hrDebug.loadAndPlay()  // Select file, watch it play
+```
+
+**Replay multiple times:**
+```javascript
+const data = await window.hrDebug.loadRecording()
+window.hrDebug.play(data)  // Replay as many times as needed
+```
