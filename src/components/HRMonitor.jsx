@@ -7,7 +7,10 @@ import {
   connectToHeartRateMonitor,
   startHeartRateNotifications,
   stopHeartRateNotifications,
-  disconnectDevice
+  disconnectDevice,
+  readBatteryLevel,
+  readDeviceInformation,
+  readBodySensorLocation
 } from '../utils/bluetooth';
 import debugRecorder from '../utils/debugBluetooth';
 import { analyzeHRV } from '../utils/hrvCalculations';
@@ -18,6 +21,9 @@ function HRMonitor() {
   const [currentHR, setCurrentHR] = useState(0);
   const [heartRateReadings, setHeartRateReadings] = useState([]);
   const [deviceName, setDeviceName] = useState('');
+  const [batteryLevel, setBatteryLevel] = useState(null);
+  const [deviceInfo, setDeviceInfo] = useState({});
+  const [sensorLocation, setSensorLocation] = useState(null);
   const [error, setError] = useState('');
   const [server, setServer] = useState(null);
   const [characteristic, setCharacteristic] = useState(null);
@@ -116,6 +122,24 @@ function HRMonitor() {
     };
   }, [server]);
 
+  // Periodic battery level polling (every 60 seconds)
+  useEffect(() => {
+    if (!server || !isConnected || isPlaybackMode.current) return;
+
+    const pollBattery = async () => {
+      const battery = await readBatteryLevel(server);
+      if (battery !== null) {
+        setBatteryLevel(battery);
+      }
+    };
+
+    // Poll immediately, then every 60 seconds
+    pollBattery();
+    const interval = setInterval(pollBattery, 60000);
+
+    return () => clearInterval(interval);
+  }, [server, isConnected]);
+
   const handleConnect = async () => {
     setIsConnecting(true);
     setError('');
@@ -129,6 +153,17 @@ function HRMonitor() {
 
       // Set connected device for debug recorder
       debugRecorder.setConnectedDevice(deviceNameStr);
+
+      // Read initial battery level
+      const battery = await readBatteryLevel(gattServer);
+      setBatteryLevel(battery);
+
+      // Read device information and sensor location
+      const devInfo = await readDeviceInformation(gattServer);
+      setDeviceInfo(devInfo);
+
+      const location = await readBodySensorLocation(gattServer);
+      setSensorLocation(location);
 
       // Start receiving heart rate data
       const char = await startHeartRateNotifications(gattServer, (data) => {
@@ -182,6 +217,9 @@ function HRMonitor() {
       setIsConnected(false);
       setCurrentHR(0);
       setDeviceName('');
+      setBatteryLevel(null);
+      setDeviceInfo({});
+      setSensorLocation(null);
       setServer(null);
       setCharacteristic(null);
 
@@ -247,6 +285,9 @@ function HRMonitor() {
           isConnected={isConnected}
           isConnecting={isConnecting}
           deviceName={deviceName}
+          batteryLevel={batteryLevel}
+          deviceInfo={deviceInfo}
+          sensorLocation={sensorLocation}
           onConnect={handleConnect}
           onDisconnect={handleDisconnect}
         />

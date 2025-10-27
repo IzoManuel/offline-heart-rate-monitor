@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function ConnectionButton({ isConnected, isConnecting, deviceName, batteryLevel, deviceInfo, sensorLocation, onConnect, onDisconnect }) {
+function DeviceInfo({ deviceName, batteryLevel, deviceInfo, sensorLocation }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const hasExtendedInfo = deviceInfo && (
@@ -14,45 +14,31 @@ function ConnectionButton({ isConnected, isConnecting, deviceName, batteryLevel,
   );
 
   return (
-    <>
-      {!isConnected ? (
-        <button
-          className="btn-primary"
-          onClick={onConnect}
-          disabled={isConnecting}
-          style={{ width: '100%' }}
-        >
-          {isConnecting ? 'Connecting...' : 'Connect to HR Monitor'}
-        </button>
-      ) : (
-        <div className="connection-status">
-          <div className="connection-header">
-            <div className="device-info">
-              <span className="status-indicator connected"></span>
-              <span className="device-name">{deviceName}</span>
-              {hasExtendedInfo && (
-                <button
-                  className="device-info-toggle-inline"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  aria-expanded={isExpanded}
-                  aria-label={isExpanded ? 'Hide device details' : 'Show device details'}
-                >
-                  {isExpanded ? '▼' : '▶'}
-                </button>
-              )}
-              {batteryLevel !== null && (
-                <span className="battery-level">
-                  <span className="battery-icon">🔋</span>
-                  {batteryLevel}%
-                </span>
-              )}
-            </div>
-            <button className="btn-danger" onClick={onDisconnect}>
-              Disconnect
-            </button>
+    <div className="device-info-section">
+      <div className="device-info-grid">
+        <div className="device-info-item">
+          <span className="device-info-label">Device:</span>
+          <span className="device-info-value">{deviceName}</span>
+        </div>
+        {batteryLevel !== null && (
+          <div className="device-info-item">
+            <span className="device-info-label">Battery:</span>
+            <span className="device-info-value">{batteryLevel}%</span>
           </div>
+        )}
+      </div>
 
-          {hasExtendedInfo && isExpanded && (
+      {hasExtendedInfo && (
+        <>
+          <button
+            className="device-info-toggle"
+            onClick={() => setIsExpanded(!isExpanded)}
+            aria-expanded={isExpanded}
+          >
+            {isExpanded ? '▼' : '▶'} {isExpanded ? 'Hide' : 'Show'} Details
+          </button>
+
+          {isExpanded && (
             <div className="device-info-extended">
               {sensorLocation && (
                 <div className="device-info-row">
@@ -98,10 +84,10 @@ function ConnectionButton({ isConnected, isConnecting, deviceName, batteryLevel,
               )}
             </div>
           )}
-        </div>
+        </>
       )}
-    </>
+    </div>
   );
 }
 
-export default ConnectionButton;
+export default DeviceInfo;

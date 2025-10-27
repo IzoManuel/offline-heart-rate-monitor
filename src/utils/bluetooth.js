@@ -1,6 +1,20 @@
 // Web Bluetooth Heart Rate Service and Characteristic UUIDs
 const HEART_RATE_SERVICE_UUID = 0x180D;
 const HEART_RATE_MEASUREMENT_CHAR_UUID = 0x2A37;
+const BODY_SENSOR_LOCATION_CHAR_UUID = 0x2A38;
+
+// Battery Service UUIDs
+const BATTERY_SERVICE_UUID = 0x180F;
+const BATTERY_LEVEL_CHAR_UUID = 0x2A19;
+
+// Device Information Service UUIDs
+const DEVICE_INFO_SERVICE_UUID = 0x180A;
+const MANUFACTURER_NAME_CHAR_UUID = 0x2A29;
+const MODEL_NUMBER_CHAR_UUID = 0x2A24;
+const SERIAL_NUMBER_CHAR_UUID = 0x2A25;
+const HARDWARE_REVISION_CHAR_UUID = 0x2A27;
+const FIRMWARE_REVISION_CHAR_UUID = 0x2A26;
+const SOFTWARE_REVISION_CHAR_UUID = 0x2A28;
 
 /**
  * Parse heart rate measurement data according to Bluetooth Heart Rate Profile
@@ -22,12 +36,6 @@ export function parseHeartRate(data) {
     index += 1;
   }
 
-  // Contact detected (optional)
-  const contactDetected = flags & 0x2;
-  const contactSensorPresent = flags & 0x4;
-  if (contactSensorPresent) {
-    result.contactDetected = !!contactDetected;
-  }
 
   // Energy expended (optional)
   const energyPresent = flags & 0x8;
@@ -65,7 +73,7 @@ export async function connectToHeartRateMonitor() {
     // Request device with heart rate service
     const device = await navigator.bluetooth.requestDevice({
       filters: [{ services: [HEART_RATE_SERVICE_UUID] }],
-      optionalServices: [HEART_RATE_SERVICE_UUID]
+      optionalServices: [HEART_RATE_SERVICE_UUID, BATTERY_SERVICE_UUID, DEVICE_INFO_SERVICE_UUID]
     });
 
     // Connect to GATT server
@@ -122,5 +130,129 @@ export async function stopHeartRateNotifications(characteristic) {
 export function disconnectDevice(server) {
   if (server && server.connected) {
     server.disconnect();
+  }
+}
+
+/**
+ * Read battery level from the device
+ * @param {BluetoothRemoteGATTServer} server - Connected GATT server
+ * @returns {Promise<number|null>} Battery level percentage (0-100) or null if not available
+ */
+export async function readBatteryLevel(server) {
+  if (!server || !server.connected) {
+    return null;
+  }
+
+  try {
+    // Get battery service
+    const service = await server.getPrimaryService(BATTERY_SERVICE_UUID);
+
+    // Get battery level characteristic
+    const characteristic = await service.getCharacteristic(BATTERY_LEVEL_CHAR_UUID);
+
+    // Read battery level
+    const value = await characteristic.readValue();
+    const batteryLevel = value.getUint8(0);
+
+    return batteryLevel;
+  } catch (error) {
+    // Battery service not available on this device
+    console.log('Battery service not available:', error.message);
+    return null;
+  }
+}
+
+/**
+ * Read body sensor location from the device
+ * @param {BluetoothRemoteGATTServer} server - Connected GATT server
+ * @returns {Promise<string|null>} Body sensor location or null if not available
+ */
+export async function readBodySensorLocation(server) {
+  if (!server || !server.connected) {
+    return null;
+  }
+
+  const locationMap = {
+    0: 'Other',
+    1: 'Chest',
+    2: 'Wrist',
+    3: 'Finger',
+    4: 'Hand',
+    5: 'Ear Lobe',
+    6: 'Foot'
+  };
+
+  try {
+    // Get heart rate service
+    const service = await server.getPrimaryService(HEART_RATE_SERVICE_UUID);
+
+    // Get body sensor location characteristic
+    const characteristic = await service.getCharacteristic(BODY_SENSOR_LOCATION_CHAR_UUID);
+
+    // Read body sensor location
+    const value = await characteristic.readValue();
+    const locationCode = value.getUint8(0);
+
+    return locationMap[locationCode] || 'Unknown';
+  } catch (error) {
+    // Body sensor location not available on this device
+    console.log('Body sensor location not available:', error.message);
+    return null;
+  }
+}
+
+/**
+ * Helper function to read a string characteristic
+ * @param {BluetoothRemoteGATTService} service - The service
+ * @param {number} characteristicUUID - The characteristic UUID
+ * @returns {Promise<string|null>} The string value or null
+ */
+async function readStringCharacteristic(service, characteristicUUID) {
+  try {
+    const characteristic = await service.getCharacteristic(characteristicUUID);
+    const value = await characteristic.readValue();
+    const decoder = new TextDecoder('utf-8');
+    return decoder.decode(value);
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * Read device information from the device
+ * @param {BluetoothRemoteGATTServer} server - Connected GATT server
+ * @returns {Promise<Object>} Device information object
+ */
+export async function readDeviceInformation(server) {
+  if (!server || !server.connected) {
+    return {};
+  }
+
+  try {
+    // Get device information service
+    const service = await server.getPrimaryService(DEVICE_INFO_SERVICE_UUID);
+
+    // Read all available characteristics
+    const [manufacturer, model, serial, hardware, firmware, software] = await Promise.all([
+      readStringCharacteristic(service, MANUFACTURER_NAME_CHAR_UUID),
+      readStringCharacteristic(service, MODEL_NUMBER_CHAR_UUID),
+      readStringCharacteristic(service, SERIAL_NUMBER_CHAR_UUID),
+      readStringCharacteristic(service, HARDWARE_REVISION_CHAR_UUID),
+      readStringCharacteristic(service, FIRMWARE_REVISION_CHAR_UUID),
+      readStringCharacteristic(service, SOFTWARE_REVISION_CHAR_UUID)
+    ]);
+
+    return {
+      manufacturer,
+      model,
+      serial,
+      hardwareRevision: hardware,
+      firmwareRevision: firmware,
+      softwareRevision: software
+    };
+  } catch (error) {
+    // Device information service not available
+    console.log('Device information service not available:', error.message);
+    return {};
   }
 }
