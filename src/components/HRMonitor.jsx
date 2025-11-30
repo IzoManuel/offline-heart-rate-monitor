@@ -277,7 +277,7 @@ function HRMonitor() {
   return (
     <div className="hr-monitor">
       <header className="header">
-        <h1>Heart Rate Monitor</h1>
+        <h1>Web HR Monitor</h1>
       </header>
 
       <main className="main-content">

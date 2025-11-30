@@ -1,6 +1,9 @@
-# Heart Rate Monitor
+# Web HR Monitor
 
-A responsive single-page application (SPA) for monitoring heart rate using Web Bluetooth API.
+A minimal web application for real-time heart rate monitoring using the Web Bluetooth API. Track heart rate, HRV (Heart Rate Variability), and device statistics from BLE heart rate monitors.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Web Bluetooth](https://img.shields.io/badge/Web%20Bluetooth-API-green.svg)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API)
 
 ## Features
 

@@ -1,7 +1,7 @@
 {
-  "name": "heart-rate-monitor",
+  "name": "web-hr-monitor",
   "version": "1.0.0",
-  "description": "Web Bluetooth Heart Rate Monitor SPA",
+  "description": "A minimal web application for real-time heart rate monitoring using the Web Bluetooth API",
   "private": true,
   "type": "module",
   "license": "MIT",
