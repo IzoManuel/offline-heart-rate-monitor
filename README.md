@@ -51,6 +51,6 @@ The production files are generated in `dist/`. PWA/service-worker behavior is en
 
 ## Deployment
 
-Pushing `main` runs [the Pages workflow](.github/workflows/deploy-pages.yml), builds the application, and publishes `dist/` to GitHub Pages over HTTPS. HTTPS is required by Web Bluetooth outside localhost.
+Pushing `main` runs [the Pages workflow](.github/workflows/deploy.yml), builds and verifies the offline application, and publishes `dist/` to GitHub Pages over HTTPS. HTTPS is required by Web Bluetooth outside localhost.
 
 See [PLAN.md](PLAN.md) for the editable implementation plan and completion checklist.
