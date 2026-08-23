@@ -28,4 +28,4 @@
 - [x] HRV results update every two minutes and the next cycle starts immediately
 - [x] Latest HRV results remain visible during the next cycle
 - [x] Continuous HRV behavior tested and production build verified
-- [ ] Continuous HRV update deployed and verified on GitHub Pages
+- [x] Continuous HRV update deployed and verified on GitHub Pages
