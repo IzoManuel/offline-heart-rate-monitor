@@ -52,4 +52,4 @@
 - [x] Detailed respiratory section added below HRV details
 - [x] Summary dropdown shows current BPM, latest HRV, and respiratory estimate
 - [x] Mobile dropdown and Disconnect control no longer overlap
-- [ ] Updated production PWA built, deployed, and verified live
+- [x] Updated production PWA built, deployed, and verified live
