@@ -1,4 +1,5 @@
 import { analyzeHRV } from './hrvCalculations.js';
+import { estimateRespiratoryRate } from './respiratoryCalculations.js';
 
 export const HRV_CYCLE_DURATION = 120000;
 
@@ -10,6 +11,7 @@ export function completeHRVCycle(readings, cycleNumber, completedAt) {
   return {
     results: {
       ...analyzeHRV(readings),
+      respiration: estimateRespiratoryRate(readings),
       cycleNumber,
       completedAt
     },

@@ -3,6 +3,7 @@ import ConnectionButton from './ConnectionButton';
 import HRDisplay from './HRDisplay';
 import Stats from './Stats';
 import HRVAnalysis from './HRVAnalysis';
+import RespiratoryAnalysis from './RespiratoryAnalysis';
 import {
   connectToHeartRateMonitor,
   startHeartRateNotifications,
@@ -302,6 +303,8 @@ function HRMonitor() {
           batteryLevel={batteryLevel}
           deviceInfo={deviceInfo}
           sensorLocation={sensorLocation}
+          currentHR={currentHR}
+          analysisResults={hrvResults}
           onConnect={handleConnect}
           onDisconnect={handleDisconnect}
         />
@@ -320,6 +323,10 @@ function HRMonitor() {
               isConnected={isConnected}
               testState={hrvTestState}
               results={hrvResults}
+            />
+            <RespiratoryAnalysis
+              results={hrvResults}
+              cycleNumber={hrvCycleNumber}
             />
           </>
         )}

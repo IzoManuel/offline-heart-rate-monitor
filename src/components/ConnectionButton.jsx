@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 
-function ConnectionButton({ isConnected, isConnecting, deviceName, batteryLevel, deviceInfo, sensorLocation, onConnect, onDisconnect }) {
+function ConnectionButton({
+  isConnected,
+  isConnecting,
+  deviceName,
+  batteryLevel,
+  deviceInfo,
+  sensorLocation,
+  currentHR,
+  analysisResults,
+  onConnect,
+  onDisconnect
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const hasExtendedInfo = deviceInfo && (
@@ -30,16 +41,6 @@ function ConnectionButton({ isConnected, isConnecting, deviceName, batteryLevel,
             <div className="device-info">
               <span className="status-indicator connected"></span>
               <span className="device-name">{deviceName}</span>
-              {hasExtendedInfo && (
-                <button
-                  className="device-info-toggle-inline"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  aria-expanded={isExpanded}
-                  aria-label={isExpanded ? 'Hide device details' : 'Show device details'}
-                >
-                  {isExpanded ? '▼' : '▶'}
-                </button>
-              )}
               {batteryLevel !== null && (
                 <span className="battery-level">
                   <span className="battery-icon">🔋</span>
@@ -52,8 +53,52 @@ function ConnectionButton({ isConnected, isConnecting, deviceName, batteryLevel,
             </button>
           </div>
 
-          {hasExtendedInfo && isExpanded && (
-            <div className="device-info-extended">
+          <button
+            className="connection-summary-toggle"
+            onClick={() => setIsExpanded(!isExpanded)}
+            aria-expanded={isExpanded}
+            aria-controls="connection-summary"
+          >
+            <span>{isExpanded ? 'Hide summary' : 'Show summary'}</span>
+            <span aria-hidden="true">{isExpanded ? '▲' : '▼'}</span>
+          </button>
+
+          {isExpanded && (
+            <div className="device-info-extended" id="connection-summary">
+              <div className="connection-summary-grid">
+                <div className="connection-summary-item">
+                  <span>Heart rate</span>
+                  <strong>{currentHR || '—'} <small>BPM</small></strong>
+                </div>
+                <div className="connection-summary-item">
+                  <span>RMSSD</span>
+                  <strong>
+                    {analysisResults && !analysisResults.error ? analysisResults.rmssd.toFixed(1) : '—'} <small>ms</small>
+                  </strong>
+                </div>
+                <div className="connection-summary-item">
+                  <span>SDNN</span>
+                  <strong>
+                    {analysisResults && !analysisResults.error ? analysisResults.sdnn.toFixed(1) : '—'} <small>ms</small>
+                  </strong>
+                </div>
+                <div className="connection-summary-item">
+                  <span>Resting respiration</span>
+                  <strong>
+                    {analysisResults?.respiration?.available
+                      ? analysisResults.respiration.breathsPerMinute.toFixed(1)
+                      : '—'} <small>BRPM</small>
+                  </strong>
+                </div>
+              </div>
+
+              {analysisResults && (
+                <p className="connection-summary-caption">
+                  Latest completed analysis: cycle {analysisResults.cycleNumber}
+                </p>
+              )}
+
+              {hasExtendedInfo && <div className="device-details-list">
               {sensorLocation && (
                 <div className="device-info-row">
                   <span className="device-info-row-label">Sensor Location:</span>
@@ -96,6 +141,7 @@ function ConnectionButton({ isConnected, isConnecting, deviceName, batteryLevel,
                   <span className="device-info-row-value">{deviceInfo.softwareRevision}</span>
                 </div>
               )}
+              </div>}
             </div>
           )}
         </div>

@@ -12,6 +12,23 @@
    - Analyze the current window every two minutes and immediately begin the next window.
    - Keep the latest completed results visible while the next window collects data.
    - Update the visible results after every completed window.
+9. Add respiratory insight and improve the compact connected-device summary.
+   - Research what the Garmin HRM 200 actually transmits over Bluetooth before choosing a calculation.
+   - Derive an explicitly labeled estimated respiratory rate only when the RR data and signal quality support it.
+   - Reuse each completed two-minute RR window so respiratory and HRV results update together.
+   - Add a detailed respiratory section at the bottom with rate, interpretation, quality, and limitations.
+   - Expand the connected-device dropdown into an at-a-glance summary of BPM, HRV, and respiratory information.
+   - Rework the mobile dropdown layout so it cannot overlap the Disconnect control.
+   - Add deterministic calculation tests, responsive review, PWA verification, and live deployment checks.
+
+### Respiratory-analysis brainstorm
+
+- Treat breathing rate as an estimate derived from respiratory sinus arrhythmia in RR intervals, not as a measurement transmitted directly by the strap, unless Garmin's documentation proves otherwise.
+- Use a transparent, dependency-free algorithm suitable for a two-minute window: clean RR intervals, build cumulative beat timestamps, detrend the irregular RR series, then use a Lomb–Scargle spectrum (which supports uneven sample timing directly) to identify dominant power within a physiologically bounded breathing-frequency band.
+- Report breaths per minute from the spectral peak and attach a signal-quality/confidence value based on peak prominence and usable data duration.
+- Withhold the number when data is missing, too short, implausible, or spectrally ambiguous; show the reason instead of producing false precision.
+- Keep the latest completed respiratory estimate visible while the next automatic analysis window runs, matching the established HRV behavior.
+- Keep medical wording conservative: wellness estimate only, not a diagnosis or a substitute for a respiratory monitor.
 
 ## Completion checklist
 
@@ -29,3 +46,10 @@
 - [x] Latest HRV results remain visible during the next cycle
 - [x] Continuous HRV behavior tested and production build verified
 - [x] Continuous HRV update deployed and verified on GitHub Pages
+- [x] Garmin HRM 200 transmitted data and RR-derived respiration method researched
+- [x] Respiratory estimator implemented with validation and quality reporting
+- [x] Respiratory calculation tests cover valid, insufficient, and ambiguous signals
+- [x] Detailed respiratory section added below HRV details
+- [x] Summary dropdown shows current BPM, latest HRV, and respiratory estimate
+- [x] Mobile dropdown and Disconnect control no longer overlap
+- [ ] Updated production PWA built, deployed, and verified live

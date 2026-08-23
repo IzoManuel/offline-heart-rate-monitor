@@ -49,7 +49,8 @@ export function parseHeartRate(data) {
   if (rrIntervalPresent) {
     const rrIntervals = [];
     for (; index + 1 < data.byteLength; index += 2) {
-      rrIntervals.push(data.getUint16(index, true));
+      // Bluetooth HRS encodes RR-Interval in 1/1024-second units.
+      rrIntervals.push(data.getUint16(index, true) * 1000 / 1024);
     }
     result.rrIntervals = rrIntervals;
   }

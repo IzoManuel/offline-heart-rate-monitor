@@ -2,7 +2,7 @@
 
 An installable Android application for monitoring a Bluetooth Low Energy heart-rate sensor. It is built as a Progressive Web App (PWA), so after the first online installation its interface loads without Wi-Fi or mobile data. Heart-rate measurements travel directly between the sensor and the phone over Bluetooth.
 
-HRV analysis runs automatically in continuous two-minute windows after connection. At the end of each window, the latest RMSSD and SDNN results remain on screen while the next two-minute window begins immediately.
+HRV analysis runs automatically in continuous two-minute windows after connection. At the end of each window, the latest RMSSD, SDNN, and estimated average resting respiration rate (BRPM) remain on screen while the next two-minute window begins immediately.
 
 This project is based on [guyru/web-hr-monitor](https://github.com/guyru/web-hr-monitor) and retains its MIT license.
 
@@ -32,6 +32,28 @@ After installing, close the app completely, enable airplane mode, turn Bluetooth
 - Firefox for Android does not implement Web Bluetooth
 - Bluetooth device discovery must follow a user tap, so the app cannot silently connect on startup
 - HRV results require a sensor that supplies RR-interval data
+
+## Respiratory estimate
+
+The HRM 200 does not send a direct breath measurement through the standard Bluetooth Heart Rate Service. It sends heart rate and RR intervals; this app estimates a two-minute average resting respiration rate from breathing-related modulation of those intervals, called respiratory sinus arrhythmia.
+
+For each completed window, the app:
+
+1. Converts Bluetooth RR ticks (1/1024 second) to milliseconds and rejects physiologically implausible intervals.
+2. Builds the irregularly timed RR tachogram and removes its linear trend.
+3. Uses a Lomb–Scargle spectrum to find the dominant rhythm from 0.1–0.5 Hz (6–30 BRPM).
+4. Reports the estimate only when the spectral peak is sufficiently distinct from background power.
+5. Labels signal quality and withholds ambiguous, short, flat, or missing data rather than inventing a number.
+
+The detailed section compares the result with the commonly cited adult resting range of 12–20 BRPM. This is a wellness estimate, not a direct respiratory measurement or medical diagnosis. Stay still during collection; movement, irregular heart rhythms, medication, artifacts, and weak respiratory sinus arrhythmia can make an estimate unavailable or inaccurate.
+
+Research and protocol references:
+
+- [Garmin HRM 200 product information](https://www.garmin.com/en-NZ/p/1530957/) — advertises real-time heart rate and HRV data.
+- [Garmin respiration-rate science](https://www.garmin.com/en-US/garmin-technology/health-science/respiration-rate/) — explains respiratory sinus arrhythmia and the 12–20 BRPM typical resting range.
+- [Bluetooth Heart Rate Service](https://www.bluetooth.com/wp-content/uploads/Files/Specification/HTML/HRS_v1.0/out/en/index-en.html) and [GATT Specification Supplement](https://btprodspecificationrefs.blob.core.windows.net/gatt-specification-supplement/GATT_Specification_Supplement.pdf) — define the RR field and its 1/1024-second unit.
+- [Boyle et al., 2009](https://pubmed.ncbi.nlm.nih.gov/19775978/) — found heart-rate/RR information alone could estimate respiration, with accuracy varying substantially by activity.
+- [Charlton et al., 2016](https://pmc.ncbi.nlm.nih.gov/articles/PMC5390977/) and [Charlton et al., 2018](https://pmc.ncbi.nlm.nih.gov/articles/PMC7612521/) — compare and review ECG-derived breathing-rate algorithms and their limitations.
 
 No account, remote API, or cloud service is used. The service worker only caches the application shell on the device.
 

@@ -347,6 +347,82 @@ body {
   border-top: 1px solid var(--border-light);
 }
 
+.connection-summary-toggle {
+  width: 100%;
+  min-height: 40px;
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.connection-summary-toggle:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.connection-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-xs);
+}
+
+.connection-summary-item {
+  min-width: 0;
+  padding: var(--spacing-sm);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+}
+
+.connection-summary-item > span {
+  display: block;
+  min-height: 2.4em;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.connection-summary-item strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.connection-summary-item small {
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.connection-summary-caption {
+  margin-top: var(--spacing-xs);
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  text-align: right;
+}
+
+.device-details-list {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-light);
+}
+
 .device-info-row {
   display: flex;
   justify-content: space-between;
@@ -686,6 +762,109 @@ body {
 }
 
 /* ==========================================
+   Estimated Respiratory Analysis
+   ========================================== */
+
+.respiratory-section {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-light);
+}
+
+.respiratory-section h2 {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.respiratory-pending,
+.respiratory-unavailable {
+  padding: var(--spacing-md);
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+.respiratory-unavailable h3 {
+  margin-bottom: var(--spacing-xs);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+}
+
+.respiratory-rate-card {
+  padding: var(--spacing-lg);
+  text-align: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.respiratory-rate-label,
+.respiratory-interpretation {
+  display: block;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.respiratory-rate-value {
+  display: block;
+  margin: var(--spacing-xs) 0;
+  color: var(--text-primary);
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.respiratory-rate-unit {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  font-weight: 500;
+}
+
+.respiratory-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: var(--spacing-md);
+  overflow: hidden;
+  background: var(--border-light);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+}
+
+.respiratory-details > div {
+  padding: var(--spacing-sm);
+  background: var(--bg-primary);
+}
+
+.respiratory-details dt {
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.respiratory-details dd {
+  margin-top: 2px;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.analysis-disclaimer {
+  margin-top: var(--spacing-sm);
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+/* ==========================================
    Messages & Info
    ========================================== */
 
@@ -771,6 +950,41 @@ body {
 
   .hrv-metrics-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .app {
+    padding: var(--spacing-xs);
+  }
+
+  .main-content {
+    padding: var(--spacing-sm);
+  }
+
+  .connection-status {
+    padding: var(--spacing-sm);
+  }
+
+  .connection-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--spacing-xs);
+  }
+
+  .device-info {
+    gap: var(--spacing-xs);
+    overflow: hidden;
+  }
+
+  .btn-danger {
+    flex-shrink: 0;
+    padding-inline: var(--spacing-sm);
+  }
+
+  .connection-summary-toggle {
+    position: static;
+    clear: both;
   }
 }
 
