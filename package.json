@@ -9,6 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "node --test",
     "verify:pwa": "node scripts/verify-pwa.mjs"
   },
   "dependencies": {

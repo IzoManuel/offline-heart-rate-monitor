@@ -2,6 +2,8 @@
 
 An installable Android application for monitoring a Bluetooth Low Energy heart-rate sensor. It is built as a Progressive Web App (PWA), so after the first online installation its interface loads without Wi-Fi or mobile data. Heart-rate measurements travel directly between the sensor and the phone over Bluetooth.
 
+HRV analysis runs automatically in continuous two-minute windows after connection. At the end of each window, the latest RMSSD and SDNN results remain on screen while the next two-minute window begins immediately.
+
 This project is based on [guyru/web-hr-monitor](https://github.com/guyru/web-hr-monitor) and retains its MIT license.
 
 ## Install on Android
@@ -29,6 +31,7 @@ After installing, close the app completely, enable airplane mode, turn Bluetooth
 - The first visit and installation require internet access
 - Firefox for Android does not implement Web Bluetooth
 - Bluetooth device discovery must follow a user tap, so the app cannot silently connect on startup
+- HRV results require a sensor that supplies RR-interval data
 
 No account, remote API, or cloud service is used. The service worker only caches the application shell on the device.
 

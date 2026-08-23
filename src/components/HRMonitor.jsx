@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ConnectionButton from './ConnectionButton';
 import HRDisplay from './HRDisplay';
 import Stats from './Stats';
@@ -13,7 +13,7 @@ import {
   readBodySensorLocation
 } from '../utils/bluetooth';
 import debugRecorder from '../utils/debugBluetooth';
-import { analyzeHRV } from '../utils/hrvCalculations';
+import { completeHRVCycle, HRV_CYCLE_DURATION } from '../utils/hrvCycle';
 
 function HRMonitor() {
   const [isConnected, setIsConnected] = useState(false);
@@ -30,13 +30,12 @@ function HRMonitor() {
   const isPlaybackMode = useRef(false);
 
   // HRV test state
-  const [isHRVTesting, setIsHRVTesting] = useState(false);
   const [hrvTestStart, setHRVTestStart] = useState(null);
+  const [hrvClock, setHRVClock] = useState(Date.now());
+  const [hrvCycleNumber, setHRVCycleNumber] = useState(1);
   const [hrvReadings, setHRVReadings] = useState([]);
   const [hrvResults, setHRVResults] = useState(null);
   const hrvReadingsRef = useRef([]);
-
-  const HRV_TEST_DURATION = 120000; // 2 minutes in milliseconds
 
   // Calculate statistics
   const stats = React.useMemo(() => {
@@ -76,7 +75,7 @@ function HRMonitor() {
         setCurrentHR(data.heartRate);
         setHeartRateReadings(prev => [...prev, data.heartRate]);
 
-        // Collect RR intervals for HRV testing (if test is running and RR data available)
+        // Collect RR intervals for the current automatic HRV cycle.
         if (data.rrIntervals && data.rrIntervals.length > 0) {
           setHRVReadings(prev => {
             const newReadings = [...prev, data];
@@ -173,7 +172,7 @@ function HRMonitor() {
         setCurrentHR(data.heartRate);
         setHeartRateReadings(prev => [...prev, data.heartRate]);
 
-        // Collect RR intervals for HRV testing (if test is running and RR data available)
+        // Collect RR intervals for the current automatic HRV cycle.
         if (data.rrIntervals && data.rrIntervals.length > 0) {
           setHRVReadings(prev => {
             const newReadings = [...prev, data];
@@ -230,49 +229,64 @@ function HRMonitor() {
     }
   };
 
-  // HRV Test Handlers
-  const handleStartHRVTest = () => {
-    setIsHRVTesting(true);
-    setHRVTestStart(Date.now());
+  // Start a fresh automatic HRV session whenever a device connects.
+  useEffect(() => {
+    if (!isConnected) {
+      setHRVTestStart(null);
+      setHRVReadings([]);
+      hrvReadingsRef.current = [];
+      return;
+    }
+
+    const startedAt = Date.now();
+    setHRVTestStart(startedAt);
+    setHRVClock(startedAt);
+    setHRVCycleNumber(1);
     setHRVReadings([]);
     hrvReadingsRef.current = [];
     setHRVResults(null);
-  };
+  }, [isConnected]);
 
-  const handleStopHRVTest = useCallback(() => {
-    // Use ref to get latest readings without causing re-renders
-    const results = analyzeHRV(hrvReadingsRef.current);
-    setHRVResults(results);
-    setIsHRVTesting(false);
-  }, []);
-
-  // Auto-stop HRV test after duration
+  // Complete the current window every two minutes and immediately start another.
   useEffect(() => {
-    if (!isHRVTesting) return;
+    if (!isConnected || hrvTestStart === null) return;
 
-    const timer = setTimeout(() => {
-      handleStopHRVTest();
-    }, HRV_TEST_DURATION);
+    const timer = setInterval(() => {
+      const now = Date.now();
+      setHRVClock(now);
 
-    return () => clearTimeout(timer);
-  }, [isHRVTesting, handleStopHRVTest]);
+      if (now - hrvTestStart < HRV_CYCLE_DURATION) return;
+
+      const transition = completeHRVCycle(hrvReadingsRef.current, hrvCycleNumber, now);
+      setHRVResults(transition.results);
+
+      // Reset only the active collection window; the published results stay visible.
+      setHRVReadings([]);
+      hrvReadingsRef.current = [];
+      setHRVCycleNumber(transition.nextCycle.cycleNumber);
+      setHRVTestStart(transition.nextCycle.startedAt);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isConnected, hrvTestStart, hrvCycleNumber]);
 
   // Calculate HRV test state for component
   const hrvTestState = useMemo(() => {
-    if (!isHRVTesting) {
+    if (!isConnected || hrvTestStart === null) {
       return { isRunning: false, duration: 0, elapsed: 0, rrCount: 0 };
     }
 
-    const elapsed = Date.now() - hrvTestStart;
+    const elapsed = Math.min(hrvClock - hrvTestStart, HRV_CYCLE_DURATION);
     const rrCount = hrvReadings.flatMap(r => r.rrIntervals || []).length;
 
     return {
       isRunning: true,
-      duration: HRV_TEST_DURATION,
+      duration: HRV_CYCLE_DURATION,
       elapsed,
-      rrCount
+      rrCount,
+      cycleNumber: hrvCycleNumber
     };
-  }, [isHRVTesting, hrvTestStart, hrvReadings]);
+  }, [isConnected, hrvTestStart, hrvClock, hrvReadings, hrvCycleNumber]);
 
   return (
     <div className="hr-monitor">
@@ -306,8 +320,6 @@ function HRMonitor() {
               isConnected={isConnected}
               testState={hrvTestState}
               results={hrvResults}
-              onStartTest={handleStartHRVTest}
-              onStopTest={handleStopHRVTest}
             />
           </>
         )}

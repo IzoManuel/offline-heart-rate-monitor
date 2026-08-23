@@ -7,6 +7,11 @@
 5. Build and test the production output, manifest, service worker, and offline navigation.
 6. Publish a public repository and deploy it with GitHub Pages.
 7. Verify the live HTTPS application and installation assets.
+8. Replace the manual HRV test with a continuous automatic two-minute analysis cycle.
+   - Start automatically whenever a monitor or playback session connects.
+   - Analyze the current window every two minutes and immediately begin the next window.
+   - Keep the latest completed results visible while the next window collects data.
+   - Update the visible results after every completed window.
 
 ## Completion checklist
 
@@ -19,3 +24,8 @@
 - [x] Public GitHub repository created and pushed
 - [x] GitHub Pages deployment enabled and successful
 - [x] Live application and PWA assets verified
+- [x] Automatic HRV cycle starts on connection
+- [x] HRV results update every two minutes and the next cycle starts immediately
+- [x] Latest HRV results remain visible during the next cycle
+- [x] Continuous HRV behavior tested and production build verified
+- [ ] Continuous HRV update deployed and verified on GitHub Pages

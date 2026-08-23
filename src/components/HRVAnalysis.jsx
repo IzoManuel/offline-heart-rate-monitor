@@ -4,7 +4,7 @@ import React from 'react';
  * HRVAnalysis Component
  *
  * Displays HRV (Heart Rate Variability) analysis interface
- * Three states: Idle (ready to start), Testing (in progress), Results (complete)
+ * Continuously displays collection progress and the latest completed results.
  *
  * @param {boolean} isConnected - Whether a device is connected
  * @param {Object} testState - Current test state
@@ -18,15 +18,11 @@ import React from 'react';
  * @param {number} results.rrCount - Number of RR intervals used
  * @param {string} results.warning - Warning message if RR intervals are suspicious
  * @param {string} results.error - Error message if test failed
- * @param {Function} onStartTest - Callback to start HRV test
- * @param {Function} onStopTest - Callback to stop HRV test
  */
 function HRVAnalysis({
   isConnected,
   testState,
-  results,
-  onStartTest,
-  onStopTest
+  results
 }) {
   // Don't show if not connected
   if (!isConnected) return null;
@@ -45,31 +41,18 @@ function HRVAnalysis({
     <div className="hrv-section">
       <h2>HRV Analysis</h2>
 
-      {/* Idle State - Ready to start test */}
-      {!testState.isRunning && !results && (
-        <div className="hrv-idle">
-          <p className="hrv-description">
-            Measure heart rate variability over 2 minutes for RMSSD and SDNN metrics.
-          </p>
-          <button onClick={onStartTest} className="btn-primary hrv-start-btn">
-            Start HRV Test (2 min)
-          </button>
-          <p className="hrv-note">
-            Requires RR interval data from your heart rate monitor
-          </p>
-        </div>
-      )}
-
-      {/* Testing State - Collection in progress */}
+      {/* The next collection window remains visible while prior results are shown. */}
       {testState.isRunning && (
         <div className="hrv-testing">
-          <p className="hrv-status">Collecting RR intervals...</p>
+          <p className="hrv-status">
+            Cycle {testState.cycleNumber}: collecting RR intervals automatically...
+          </p>
 
           <div className="hrv-progress-container">
             <div className="hrv-progress-bar">
               <div
                 className="hrv-progress-fill"
-                style={{ width: `${(testState.elapsed / testState.duration) * 100}%` }}
+              style={{ width: `${Math.min(100, (testState.elapsed / testState.duration) * 100)}%` }}
               />
             </div>
             <p className="hrv-countdown">
@@ -82,16 +65,19 @@ function HRVAnalysis({
             <span className="hrv-value">{testState.rrCount}</span>
           </div>
 
-          <button onClick={onStopTest} className="btn-secondary hrv-stop-btn">
-            Stop Test
-          </button>
+          <p className="hrv-note">
+            Results update every 2 minutes. Keep the sensor connected and remain still.
+          </p>
         </div>
       )}
 
       {/* Results State - Test completed */}
       {results && (
         <div className="hrv-results">
-          <h3>Test Results</h3>
+          <h3>Latest Results — Cycle {results.cycleNumber}</h3>
+          <p className="hrv-note">
+            Completed {new Date(results.completedAt).toLocaleTimeString()}; displayed while the next cycle runs.
+          </p>
 
           {/* Error message */}
           {results.error && (
@@ -135,10 +121,6 @@ function HRVAnalysis({
               </div>
             </div>
           )}
-
-          <button onClick={onStartTest} className="btn-primary hrv-new-test-btn">
-            New Test
-          </button>
         </div>
       )}
     </div>
