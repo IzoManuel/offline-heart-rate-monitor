@@ -65,6 +65,12 @@
    - Normalize each selected line to its own observed range for the shared plot while showing raw units and ranges, avoiding a misleading shared numeric axis for BPM, milliseconds, and BRPM.
    - Distinguish series by labels, color, and line pattern; include a textual latest-value summary and mobile-friendly controls.
    - Add deterministic tests for bounded history and metric averages, perform responsive review, rebuild, deploy, and verify live.
+16. Make the normalized trend graph easier to read precisely.
+   - Label the Y-axis as relative position from 0% to 100% so it cannot be mistaken for any metric's raw unit.
+   - On pointer hover or touch, select the nearest five-second sample and show its exact time and raw values with units for every enabled metric.
+   - Add a vertical inspection guide and per-series point markers at the selected timestamp.
+   - Make the chart focusable and support keyboard inspection with Left Arrow, Right Arrow, Home, and End.
+   - Keep the readout usable on mobile, add deterministic nearest-point tests, rebuild, deploy, and verify live.
 
 ### Trend-graph and storage research decisions
 
@@ -144,3 +150,8 @@
 - [x] Selectable accessible multi-metric trend graph implemented
 - [x] Graph/storage unit tests and mobile production gates pass
 - [x] Trend graph update deployed and verified live
+- [x] Relative Y-axis label and percentage ticks implemented
+- [x] Hover/tap inspection shows exact selected values and time
+- [x] Keyboard chart inspection implemented
+- [x] Interactive-chart tests and production gates pass
+- [ ] Interactive-chart update deployed and verified live

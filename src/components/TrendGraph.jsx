@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { formatOccurrenceTime } from '../utils/timeFormatting';
+import { findNearestPointIndex } from '../utils/chartStorage';
 
 const SERIES = [
   { key: 'heartRate', label: 'Heart Rate', unit: 'BPM', color: '#dc2626', dash: '' },
@@ -14,6 +15,7 @@ const PADDING = { top: 20, right: 18, bottom: 38, left: 42 };
 
 function TrendGraph({ points }) {
   const [selected, setSelected] = useState(() => new Set(SERIES.map(series => series.key)));
+  const [inspectedIndex, setInspectedIndex] = useState(null);
   const validPoints = useMemo(
     () => points.filter(point => Number.isFinite(point.timestamp)).sort((a, b) => a.timestamp - b.timestamp),
     [points]
@@ -36,8 +38,10 @@ function TrendGraph({ points }) {
       `${index === 0 ? 'M' : 'L'} ${x(point.timestamp).toFixed(1)} ${y(point[series.key]).toFixed(1)}`
     ).join(' ');
 
-    return { ...series, samples, min, max, path, latest: values.at(-1) };
+    return { ...series, samples, min, max, path, latest: values.at(-1), x, y };
   }), [validPoints, selected, start, end]);
+
+  const inspectedPoint = inspectedIndex === null ? null : validPoints[inspectedIndex];
 
   const toggleSeries = key => {
     setSelected(previous => {
@@ -46,6 +50,28 @@ function TrendGraph({ points }) {
       else next.add(key);
       return next;
     });
+  };
+
+  const inspectAtPointer = event => {
+    if (validPoints.length === 0) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const viewX = ((event.clientX - bounds.left) / bounds.width) * WIDTH;
+    const ratio = Math.max(0, Math.min(1,
+      (viewX - PADDING.left) / (WIDTH - PADDING.left - PADDING.right)
+    ));
+    const timestamp = start + ratio * Math.max(1, end - start);
+    setInspectedIndex(findNearestPointIndex(validPoints, timestamp));
+  };
+
+  const inspectWithKeyboard = event => {
+    if (validPoints.length === 0) return;
+    const current = inspectedIndex ?? validPoints.length - 1;
+    if (event.key === 'ArrowLeft') setInspectedIndex(Math.max(0, current - 1));
+    else if (event.key === 'ArrowRight') setInspectedIndex(Math.min(validPoints.length - 1, current + 1));
+    else if (event.key === 'Home') setInspectedIndex(0);
+    else if (event.key === 'End') setInspectedIndex(validPoints.length - 1);
+    else return;
+    event.preventDefault();
   };
 
   return (
@@ -81,14 +107,28 @@ function TrendGraph({ points }) {
             className="trend-chart"
             viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
             role="img"
+            tabIndex="0"
             aria-label={`Relative trend chart from ${formatOccurrenceTime(start)} to ${formatOccurrenceTime(end)}. Raw values and ranges are listed below.`}
+            onPointerMove={inspectAtPointer}
+            onPointerDown={inspectAtPointer}
+            onKeyDown={inspectWithKeyboard}
           >
             {[0, 0.25, 0.5, 0.75, 1].map(position => {
               const y = PADDING.top + position * (HEIGHT - PADDING.top - PADDING.bottom);
-              return <line key={position} x1={PADDING.left} x2={WIDTH - PADDING.right} y1={y} y2={y} className="trend-grid-line" />;
+              return (
+                <g key={position}>
+                  <line x1={PADDING.left} x2={WIDTH - PADDING.right} y1={y} y2={y} className="trend-grid-line" />
+                  <text x={PADDING.left - 7} y={y + 4} textAnchor="end" className="trend-axis-label">{Math.round((1 - position) * 100)}%</text>
+                </g>
+              );
             })}
-            <text x="8" y={PADDING.top + 5} className="trend-axis-label">High</text>
-            <text x="10" y={HEIGHT - PADDING.bottom} className="trend-axis-label">Low</text>
+            <text
+              x="13"
+              y={(PADDING.top + HEIGHT - PADDING.bottom) / 2}
+              textAnchor="middle"
+              transform={`rotate(-90 13 ${(PADDING.top + HEIGHT - PADDING.bottom) / 2})`}
+              className="trend-axis-title"
+            >Relative Position</text>
             <text x={PADDING.left} y={HEIGHT - 12} className="trend-axis-label">{formatOccurrenceTime(start)}</text>
             <text x={WIDTH - PADDING.right} y={HEIGHT - 12} textAnchor="end" className="trend-axis-label">{formatOccurrenceTime(end)}</text>
             {plottedSeries.map(series => series.samples.length > 1 && (
@@ -102,9 +142,46 @@ function TrendGraph({ points }) {
                 vectorEffect="non-scaling-stroke"
               />
             ))}
+            {inspectedPoint && (
+              <>
+                <line
+                  x1={plottedSeries[0]?.x(inspectedPoint.timestamp) ?? PADDING.left}
+                  x2={plottedSeries[0]?.x(inspectedPoint.timestamp) ?? PADDING.left}
+                  y1={PADDING.top}
+                  y2={HEIGHT - PADDING.bottom}
+                  className="trend-inspection-line"
+                />
+                {plottedSeries.map(series => Number.isFinite(inspectedPoint[series.key]) && (
+                  <circle
+                    key={series.key}
+                    cx={series.x(inspectedPoint.timestamp)}
+                    cy={series.y(inspectedPoint[series.key])}
+                    r="5"
+                    fill={series.color}
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                ))}
+              </>
+            )}
           </svg>
         </div>
       )}
+
+      <div className="trend-inspector" aria-live="polite">
+        <strong>{inspectedPoint ? formatOccurrenceTime(inspectedPoint.timestamp) : 'Inspect A Point'}</strong>
+        <span>{inspectedPoint ? 'Exact Sampled Values' : 'Hover, tap, or focus the chart and use the arrow keys'}</span>
+        {inspectedPoint && (
+          <dl>
+            {plottedSeries.map(series => (
+              <div key={series.key}>
+                <dt>{series.label}</dt>
+                <dd>{Number.isFinite(inspectedPoint[series.key]) ? inspectedPoint[series.key].toFixed(1) : '—'} {series.unit}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+      </div>
 
       <div className="trend-legend" aria-label="Latest values and observed ranges">
         {plottedSeries.map(series => (

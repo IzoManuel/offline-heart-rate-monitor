@@ -10,6 +10,23 @@ export function boundChartPoints(points, limit = CHART_POINT_LIMIT) {
     .slice(-limit);
 }
 
+export function findNearestPointIndex(points, timestamp) {
+  if (!points.length || !Number.isFinite(timestamp)) return -1;
+
+  let low = 0;
+  let high = points.length - 1;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (points[middle].timestamp < timestamp) low = middle + 1;
+    else high = middle;
+  }
+
+  if (low === 0) return 0;
+  const before = points[low - 1];
+  const after = points[low];
+  return timestamp - before.timestamp <= after.timestamp - timestamp ? low - 1 : low;
+}
+
 function openDatabase() {
   return new Promise((resolve, reject) => {
     if (!globalThis.indexedDB) {
