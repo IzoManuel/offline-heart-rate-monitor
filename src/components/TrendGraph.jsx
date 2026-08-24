@@ -1,7 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { formatOccurrenceTime } from '../utils/timeFormatting';
 import { aggregateChartPoints, findNearestPointIndex } from '../utils/chartStorage';
 import { calculateLinearAxis, formatAxisTick } from '../utils/chartScale';
+import { downloadChartCsv } from '../utils/csvExport';
+import { latestInspectionIndex } from '../utils/chartInteraction';
 
 const SERIES = [
   { key: 'heartRate', label: 'Heart Rate', unit: 'BPM', color: '#dc2626', dash: '' },
@@ -24,7 +26,7 @@ const WIDTH = 680;
 const HEIGHT = 230;
 const PADDING = { top: 18, right: 18, bottom: 36, left: 58 };
 
-function MetricChart({ series, points, start, end, gapThresholdMs, inspectedPoint, onInspect, onKeyDown }) {
+function MetricChart({ series, points, start, end, gapThresholdMs, inspectedPoint, inspectionEnabled, onInspect, onKeyDown }) {
   const samples = points.filter(point => Number.isFinite(point[series.key]));
   const values = samples.map(point => point[series.key]);
   const axis = calculateLinearAxis(values, 5);
@@ -58,11 +60,11 @@ function MetricChart({ series, points, start, end, gapThresholdMs, inspectedPoin
           className="trend-chart metric-chart"
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           role="img"
-          tabIndex="0"
+          tabIndex={inspectionEnabled ? 0 : undefined}
           aria-label={`${series.label} in ${series.unit} from ${formatOccurrenceTime(start)} to ${formatOccurrenceTime(end)}`}
-          onPointerMove={onInspect}
-          onPointerDown={onInspect}
-          onKeyDown={onKeyDown}
+          onPointerMove={inspectionEnabled ? onInspect : undefined}
+          onPointerDown={inspectionEnabled ? onInspect : undefined}
+          onKeyDown={inspectionEnabled ? onKeyDown : undefined}
         >
           {axis.ticks.map(tick => {
             const tickY = y(tick);
@@ -117,6 +119,8 @@ function TrendGraph({ points }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [inspectedIndex, setInspectedIndex] = useState(null);
   const [granularity, setGranularity] = useState('auto');
+  const [inspectionEnabled, setInspectionEnabled] = useState(true);
+  const [followLatest, setFollowLatest] = useState(true);
   const storedPoints = useMemo(
     () => points.filter(point => Number.isFinite(point.timestamp)).sort((a, b) => a.timestamp - b.timestamp),
     [points]
@@ -138,23 +142,35 @@ function TrendGraph({ points }) {
     : { week: 21 * 86400000, month: 93 * 86400000, year: 1098 * 86400000 }[effectiveBucket];
   const inspectedPoint = inspectedIndex === null ? null : displayedPoints[inspectedIndex];
 
+  useEffect(() => {
+    const latestIndex = latestInspectionIndex(displayedPoints.length, inspectionEnabled, followLatest);
+    if (latestIndex !== null) setInspectedIndex(latestIndex);
+  }, [displayedPoints, inspectionEnabled, followLatest]);
+
   const inspectAtPointer = event => {
-    if (!displayedPoints.length) return;
+    if (!inspectionEnabled || !displayedPoints.length) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const viewX = ((event.clientX - bounds.left) / bounds.width) * WIDTH;
     const ratio = Math.max(0, Math.min(1, (viewX - PADDING.left) / (WIDTH - PADDING.left - PADDING.right)));
+    setFollowLatest(false);
     setInspectedIndex(findNearestPointIndex(displayedPoints, start + ratio * Math.max(1, end - start)));
   };
 
   const inspectWithKeyboard = event => {
-    if (!displayedPoints.length) return;
+    if (!inspectionEnabled || !displayedPoints.length) return;
     const current = inspectedIndex ?? displayedPoints.length - 1;
     if (event.key === 'ArrowLeft') setInspectedIndex(Math.max(0, current - 1));
     else if (event.key === 'ArrowRight') setInspectedIndex(Math.min(displayedPoints.length - 1, current + 1));
     else if (event.key === 'Home') setInspectedIndex(0);
     else if (event.key === 'End') setInspectedIndex(displayedPoints.length - 1);
     else return;
+    setFollowLatest(false);
     event.preventDefault();
+  };
+
+  const resumeLive = () => {
+    setFollowLatest(true);
+    if (displayedPoints.length) setInspectedIndex(displayedPoints.length - 1);
   };
 
   const seriesStats = SERIES.map(series => {
@@ -180,12 +196,26 @@ function TrendGraph({ points }) {
 
       {isExpanded && (
         <div id="metric-trend-graphs" className="trend-expanded">
-          <label className="trend-granularity">
-            <span>Granularity</span>
-            <select value={granularity} onChange={event => { setGranularity(event.target.value); setInspectedIndex(null); }}>
-              {GRANULARITIES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </label>
+          <div className="trend-controls" aria-label="Chart Controls">
+            <label className="trend-granularity">
+              <span>Granularity</span>
+              <select value={granularity} onChange={event => { setGranularity(event.target.value); setInspectedIndex(null); }}>
+                {GRANULARITIES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </label>
+            <label className="trend-switch">
+              <input type="checkbox" checked={inspectionEnabled} onChange={event => { setInspectionEnabled(event.target.checked); if (!event.target.checked) setInspectedIndex(null); }} />
+              <span>Inspect Values</span>
+            </label>
+            <label className="trend-switch">
+              <input type="checkbox" checked={followLatest} disabled={!inspectionEnabled} onChange={event => event.target.checked ? resumeLive() : setFollowLatest(false)} />
+              <span>Follow Latest</span>
+            </label>
+            <button type="button" className="trend-action" onClick={() => downloadChartCsv(storedPoints)} disabled={!storedPoints.length}>Export CSV</button>
+          </div>
+          {inspectionEnabled && !followLatest && displayedPoints.length > 0 && (
+            <div className="trend-paused" role="status"><span>Viewing History</span><button type="button" onClick={resumeLive}>Resume Live</button></div>
+          )}
           {displayedPoints.length < 2 ? (
             <p className="trend-empty">Trend data appears after two five-second samples.</p>
           ) : (
@@ -199,6 +229,7 @@ function TrendGraph({ points }) {
                   end={end}
                   gapThresholdMs={gapThresholdMs}
                   inspectedPoint={inspectedPoint}
+                  inspectionEnabled={inspectionEnabled}
                   onInspect={inspectAtPointer}
                   onKeyDown={inspectWithKeyboard}
                 />
@@ -206,11 +237,11 @@ function TrendGraph({ points }) {
             </div>
           )}
 
-          <div className="trend-inspector" aria-live="polite">
+          {inspectionEnabled && <div className="trend-inspector" aria-live="polite">
             <strong>{inspectedPoint ? formatOccurrenceTime(inspectedPoint.timestamp) : 'Inspect A Point'}</strong>
             <span>{inspectedPoint ? `${effectiveBucket === 5000 ? 'Exact Sampled' : 'Averaged'} Values` : 'Hover, tap, or focus a graph and use the arrow keys'}</span>
             {inspectedPoint && <dl>{SERIES.map(series => <div key={series.key}><dt>{series.label}</dt><dd>{Number.isFinite(inspectedPoint[series.key]) ? inspectedPoint[series.key].toFixed(1) : '—'} {series.unit}</dd></div>)}</dl>}
-          </div>
+          </div>}
 
           <div className="trend-legend" aria-label="Latest values and observed ranges">
             {seriesStats.map(series => (

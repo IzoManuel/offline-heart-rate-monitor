@@ -126,6 +126,24 @@
 - Nearest-X selection is preferable for time-series charts because it avoids dead zones between sparse or small point marks.
 - Hover cannot be the sole access path: touch, keyboard focus, and a textual live-region readout remain available.
 
+23. Add portable CSV export and explicit live-chart interaction modes.
+   - Add visible, independently labeled controls for inspection and live following instead of relying on undiscoverable chart gestures.
+   - Add an Inspect Values switch that shows or hides the selected point, X/Y guides, axis callouts, tooltip, and textual inspector without changing graph data.
+   - Add a Follow Latest switch that keeps the inspection cursor attached to each newest displayed sample while data arrives.
+   - Pause Follow Latest when the user deliberately inspects historical data, clearly show that the graph is paused, and provide a direct Resume Live action.
+   - Preserve touch, pointer, and keyboard inspection when Inspect Values is enabled; make all controls natively keyboard accessible.
+   - Export complete retained chart history independently of display granularity, with timestamps, session, metric values/units, and aggregation counts.
+   - Use safe CSV escaping, an Excel-compatible UTF-8 marker, a descriptive dated filename, and an offline local download.
+   - Add deterministic tests and perform mobile, build, PWA, deployment, and live verification.
+
+### Live-chart controls and CSV research decision
+
+- Inspection visibility and automatic live following are independent preferences, so they use separate switches.
+- Historical inspection pauses following so new samples cannot pull the cursor away while someone is reading; Resume Live restores the latest point immediately.
+- Tooltips remain supplemental: native controls and the textual inspector retain keyboard and touch access, consistent with W3C input-accessibility guidance.
+- CSV exports retained source records rather than rendered buckets. Display granularity is a visualization concern and must not silently discard export resolution.
+- Explicit timestamps, units, session identity, and sample counts prevent compacted historical records from being mistaken for individual five-second observations.
+
 ### Raw-axis research correction
 
 - The previous 0–100% min-max normalization is mathematically valid for comparing relative shape, but it is not a suitable primary display for reading these health measurements because the endpoints change with the visible data.
@@ -249,3 +267,10 @@
 - [x] Hover, tap, keyboard, and textual readout remain synchronized
 - [x] Tooltip mobile and production gates pass
 - [x] In-chart tooltip update deployed and verified live
+- [x] CSV export implemented from complete retained history
+- [x] Inspect Values control implemented without changing graph data
+- [x] Follow Latest, automatic pause, and Resume Live implemented
+- [x] New chart controls reviewed for touch, keyboard, and mobile layout
+- [x] CSV and chart-mode automated tests pass
+- [x] Updated production build and offline PWA verification pass
+- [ ] Live-chart and CSV update deployed and verified live
