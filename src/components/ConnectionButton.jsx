@@ -21,6 +21,14 @@ function ConnectionButton({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const handleClearSavedData = () => {
+    const confirmed = window.confirm(
+      'Clear the saved session? This removes the latest saved measurements and cannot be undone.'
+    );
+
+    if (confirmed) onClearSavedData();
+  };
+
   const toggle = (
     <button
       className="connection-summary-toggle"
@@ -65,7 +73,7 @@ function ConnectionButton({
                 <strong>Saved Session</strong>
                 <span>Saved {formatOccurrenceTime(savedSession.savedAt)}</span>
               </div>
-              <button className="btn-clear-saved" onClick={onClearSavedData}>Clear Saved Data</button>
+              <button className="btn-clear-saved" onClick={handleClearSavedData}>Clear Saved Data</button>
             </div>
             {toggle}
             {isExpanded && <div className="device-info-extended" id="connection-summary">{summary}</div>}

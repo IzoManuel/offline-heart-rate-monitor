@@ -51,6 +51,10 @@
    - Provide an explicit Clear Saved Data control.
    - Start a clean live metric session on each new Bluetooth connection while retaining privacy-local storage only.
    - Validate malformed/version-mismatched storage safely and test save/load/clear behavior.
+14. Protect saved data from accidental deletion.
+   - Require an explicit confirmation before Clear Saved Data removes the local snapshot.
+   - Keep cancellation non-destructive and use a mobile-accessible browser dialog.
+   - Rebuild, test, deploy, and verify the updated production bundle.
 
 ### Respiratory-analysis brainstorm
 
@@ -110,3 +114,7 @@
 - [x] New Bluetooth connection starts clean live metrics
 - [x] Mobile reload/restoration review and production gates pass
 - [x] Persistence update deployed and verified live
+- [x] Clear Saved Data requires explicit confirmation
+- [x] Cancelling confirmation leaves the saved session intact
+- [x] Protected-clear update passes production gates
+- [ ] Protected-clear update deployed and verified live
