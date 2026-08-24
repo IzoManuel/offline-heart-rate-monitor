@@ -73,4 +73,4 @@
 - [x] Visible metric labels use title case except acronyms
 - [x] Summary respiratory card renamed to BRPM
 - [x] Updated rolling analysis tests and mobile visual review pass
-- [ ] Rolling-analysis update deployed and verified live
+- [x] Rolling-analysis update deployed and verified live
