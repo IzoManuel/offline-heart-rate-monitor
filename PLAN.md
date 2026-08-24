@@ -71,6 +71,11 @@
    - Add a vertical inspection guide and per-series point markers at the selected timestamp.
    - Make the chart focusable and support keyboard inspection with Left Arrow, Right Arrow, Home, and End.
    - Keep the readout usable on mobile, add deterministic nearest-point tests, rebuild, deploy, and verify live.
+17. Limit graph checkboxes strictly to plotted lines.
+   - Keep every summary and detail card visible regardless of graph selection.
+   - Keep all four graph value/range cards and exact inspection values visible when their lines are hidden.
+   - Use checkboxes only to show or hide graph paths and their inspection markers.
+   - Rebuild, test, deploy, and verify the clarified interaction live.
 
 ### Trend-graph and storage research decisions
 
@@ -155,3 +160,7 @@
 - [x] Keyboard chart inspection implemented
 - [x] Interactive-chart tests and production gates pass
 - [x] Interactive-chart update deployed and verified live
+- [x] Graph checkboxes affect only plotted lines and markers
+- [x] All metric and graph value cards remain constant
+- [x] Graph-selector scope update passes production gates
+- [ ] Graph-selector scope update deployed and verified live

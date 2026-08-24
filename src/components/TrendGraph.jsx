@@ -23,7 +23,7 @@ function TrendGraph({ points }) {
   const start = validPoints[0]?.timestamp;
   const end = validPoints.at(-1)?.timestamp;
 
-  const plottedSeries = useMemo(() => SERIES.filter(series => selected.has(series.key)).map(series => {
+  const chartSeries = useMemo(() => SERIES.map(series => {
     const samples = validPoints.filter(point => Number.isFinite(point[series.key]));
     const values = samples.map(point => point[series.key]);
     const min = values.length ? Math.min(...values) : null;
@@ -39,7 +39,8 @@ function TrendGraph({ points }) {
     ).join(' ');
 
     return { ...series, samples, min, max, path, latest: values.at(-1), x, y };
-  }), [validPoints, selected, start, end]);
+  }), [validPoints, start, end]);
+  const plottedSeries = chartSeries.filter(series => selected.has(series.key));
 
   const inspectedPoint = inspectedIndex === null ? null : validPoints[inspectedIndex];
 
@@ -145,8 +146,8 @@ function TrendGraph({ points }) {
             {inspectedPoint && (
               <>
                 <line
-                  x1={plottedSeries[0]?.x(inspectedPoint.timestamp) ?? PADDING.left}
-                  x2={plottedSeries[0]?.x(inspectedPoint.timestamp) ?? PADDING.left}
+                  x1={chartSeries[0]?.x(inspectedPoint.timestamp) ?? PADDING.left}
+                  x2={chartSeries[0]?.x(inspectedPoint.timestamp) ?? PADDING.left}
                   y1={PADDING.top}
                   y2={HEIGHT - PADDING.bottom}
                   className="trend-inspection-line"
@@ -173,7 +174,7 @@ function TrendGraph({ points }) {
         <span>{inspectedPoint ? 'Exact Sampled Values' : 'Hover, tap, or focus the chart and use the arrow keys'}</span>
         {inspectedPoint && (
           <dl>
-            {plottedSeries.map(series => (
+            {chartSeries.map(series => (
               <div key={series.key}>
                 <dt>{series.label}</dt>
                 <dd>{Number.isFinite(inspectedPoint[series.key]) ? inspectedPoint[series.key].toFixed(1) : '—'} {series.unit}</dd>
@@ -184,7 +185,7 @@ function TrendGraph({ points }) {
       </div>
 
       <div className="trend-legend" aria-label="Latest values and observed ranges">
-        {plottedSeries.map(series => (
+        {chartSeries.map(series => (
           <div key={series.key}>
             <strong>{series.label}</strong>
             <span>
