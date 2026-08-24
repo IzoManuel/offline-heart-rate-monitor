@@ -273,4 +273,4 @@
 - [x] New chart controls reviewed for touch, keyboard, and mobile layout
 - [x] CSV and chart-mode automated tests pass
 - [x] Updated production build and offline PWA verification pass
-- [ ] Live-chart and CSV update deployed and verified live
+- [x] Live-chart and CSV update deployed and verified live
