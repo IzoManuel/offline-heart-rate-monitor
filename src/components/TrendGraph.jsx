@@ -24,7 +24,7 @@ const WIDTH = 680;
 const HEIGHT = 230;
 const PADDING = { top: 18, right: 18, bottom: 36, left: 58 };
 
-function MetricChart({ series, points, start, end, gapThresholdMs, visible, inspectedPoint, onInspect, onKeyDown }) {
+function MetricChart({ series, points, start, end, gapThresholdMs, inspectedPoint, onInspect, onKeyDown }) {
   const samples = points.filter(point => Number.isFinite(point[series.key]));
   const values = samples.map(point => point[series.key]);
   const axis = calculateLinearAxis(values, 5);
@@ -77,13 +77,13 @@ function MetricChart({ series, points, start, end, gapThresholdMs, visible, insp
           >{series.unit}</text>
           <text x={PADDING.left} y={HEIGHT - 11} className="trend-axis-label">{formatOccurrenceTime(start)}</text>
           <text x={WIDTH - PADDING.right} y={HEIGHT - 11} textAnchor="end" className="trend-axis-label">{formatOccurrenceTime(end)}</text>
-          {visible && samples.length > 1 && (
+          {samples.length > 1 && (
             <path d={path} fill="none" stroke={series.color} strokeWidth="3" strokeDasharray={series.dash} vectorEffect="non-scaling-stroke" />
           )}
           {inspectedPoint && (
             <line x1={x(inspectedPoint.timestamp)} x2={x(inspectedPoint.timestamp)} y1={PADDING.top} y2={HEIGHT - PADDING.bottom} className="trend-inspection-line" />
           )}
-          {visible && inspectedPoint && Number.isFinite(inspectedPoint[series.key]) && (
+          {inspectedPoint && Number.isFinite(inspectedPoint[series.key]) && (
             <circle cx={x(inspectedPoint.timestamp)} cy={y(inspectedPoint[series.key])} r="5" fill={series.color} stroke="white" strokeWidth="2" />
           )}
         </svg>
@@ -94,7 +94,6 @@ function MetricChart({ series, points, start, end, gapThresholdMs, visible, insp
 
 function TrendGraph({ points }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selected, setSelected] = useState(() => new Set(SERIES.map(series => series.key)));
   const [inspectedIndex, setInspectedIndex] = useState(null);
   const [granularity, setGranularity] = useState('auto');
   const storedPoints = useMemo(
@@ -117,13 +116,6 @@ function TrendGraph({ points }) {
     ? effectiveBucket * 3
     : { week: 21 * 86400000, month: 93 * 86400000, year: 1098 * 86400000 }[effectiveBucket];
   const inspectedPoint = inspectedIndex === null ? null : displayedPoints[inspectedIndex];
-
-  const toggleSeries = key => setSelected(previous => {
-    const next = new Set(previous);
-    if (next.has(key)) next.delete(key);
-    else next.add(key);
-    return next;
-  });
 
   const inspectAtPointer = event => {
     if (!displayedPoints.length) return;
@@ -173,16 +165,6 @@ function TrendGraph({ points }) {
               {GRANULARITIES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>
-          <fieldset className="trend-controls">
-            <legend>Choose Lines</legend>
-            {SERIES.map(series => (
-              <label key={series.key} style={{ '--series-color': series.color }}>
-                <input type="checkbox" checked={selected.has(series.key)} onChange={() => toggleSeries(series.key)} />
-                <span className="trend-line-key" aria-hidden="true"></span>{series.label}
-              </label>
-            ))}
-          </fieldset>
-
           {displayedPoints.length < 2 ? (
             <p className="trend-empty">Trend data appears after two five-second samples.</p>
           ) : (
@@ -195,7 +177,6 @@ function TrendGraph({ points }) {
                   start={start}
                   end={end}
                   gapThresholdMs={gapThresholdMs}
-                  visible={selected.has(series.key)}
                   inspectedPoint={inspectedPoint}
                   onInspect={inspectAtPointer}
                   onKeyDown={inspectWithKeyboard}

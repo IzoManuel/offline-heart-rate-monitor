@@ -107,6 +107,10 @@
    - Keep synchronized X-axis range, granularity, hover/tap/keyboard inspection time, long-term adaptive storage, session gaps, and constant value cards.
    - Keep metric checkboxes scoped to line visibility only; hiding a line must not remove its graph frame, axes, cards, or raw inspection values.
    - Add deterministic raw-axis-domain and tick tests, perform mobile/build/PWA checks, deploy, and verify live.
+21. Remove obsolete graph line checkboxes.
+   - Remove Choose Lines controls now that every metric has its own separate graph.
+   - Keep all four raw-value lines and inspection markers permanently visible.
+   - Remove selector-only component state and styling, update documentation, rebuild, deploy, and verify live.
 
 ### Raw-axis research correction
 
@@ -220,4 +224,8 @@
 - [x] Checkboxes affect only raw graph lines
 - [x] Raw-axis and graph interaction tests pass
 - [x] Separate-graph mobile and production gates pass
-- [ ] Separate raw-graph update deployed and verified live
+- [x] Separate raw-graph update deployed and verified live
+- [x] Obsolete graph line checkboxes and selector state removed
+- [x] All four separate graph lines remain permanently visible
+- [x] Checkbox-removal production gates pass
+- [ ] Checkbox-removal update deployed and verified live
