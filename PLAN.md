@@ -228,4 +228,4 @@
 - [x] Obsolete graph line checkboxes and selector state removed
 - [x] All four separate graph lines remain permanently visible
 - [x] Checkbox-removal production gates pass
-- [ ] Checkbox-removal update deployed and verified live
+- [x] Checkbox-removal update deployed and verified live
