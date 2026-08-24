@@ -34,11 +34,15 @@ export function findNearestPointIndex(points, timestamp) {
 
 export function aggregateChartPoints(points, bucketMs) {
   const ordered = boundChartPoints(points, Number.MAX_SAFE_INTEGER);
-  if (!Number.isFinite(bucketMs) || bucketMs <= 5000) return ordered;
+  if (Number.isFinite(bucketMs) && bucketMs <= 5000) return ordered;
+  const calendarGranularity = ['week', 'month', 'year'].includes(bucketMs) ? bucketMs : null;
+  if (!calendarGranularity && !Number.isFinite(bucketMs)) return ordered;
 
   const buckets = new Map();
   for (const point of ordered) {
-    const bucketStart = Math.floor(point.timestamp / bucketMs) * bucketMs;
+    const bucketStart = calendarGranularity
+      ? calendarBucketStart(point.timestamp, calendarGranularity)
+      : Math.floor(point.timestamp / bucketMs) * bucketMs;
     const key = `${point.sessionStartedAt ?? 'unknown'}:${bucketStart}`;
     let bucket = buckets.get(key);
     if (!bucket) {
@@ -73,6 +77,20 @@ export function aggregateChartPoints(points, bucketMs) {
     ])),
     ...Object.fromEntries(CHART_METRICS.map(metric => [`${metric}Count`, bucket.metricCounts[metric]]))
   })).sort((a, b) => a.timestamp - b.timestamp);
+}
+
+export function calendarBucketStart(timestamp, granularity) {
+  const date = new Date(timestamp);
+  date.setHours(0, 0, 0, 0);
+  if (granularity === 'week') {
+    const daysSinceMonday = (date.getDay() + 6) % 7;
+    date.setDate(date.getDate() - daysSinceMonday);
+  } else if (granularity === 'month') {
+    date.setDate(1);
+  } else if (granularity === 'year') {
+    date.setMonth(0, 1);
+  }
+  return date.getTime();
 }
 
 export function compactChartPoints(points) {

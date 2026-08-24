@@ -92,6 +92,11 @@
 - The database remains capped at 10,000 records. When full, adjacent records are averaged and compacted, trading old precision for long retention without unbounded storage.
 - Display granularity is independent of storage resolution: users can request a coarser view, while Auto targets a manageable number of SVG points.
 - Long-range values are trends derived from averages, not raw beat-level measurements; exact five-second detail is naturally concentrated in more recent history.
+19. Add calendar-scale long-term graph granularity.
+   - Add Week, Month, and Year choices to the existing granularity selector.
+   - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.
+   - Preserve independent metric weighting, session gaps, hover/tap inspection, and constant metric cards at calendar granularities.
+   - Add deterministic boundary tests, rebuild, deploy, and verify the options live.
 
 ### Trend-graph and storage research decisions
 
@@ -186,3 +191,7 @@
 - [x] Aggregation and compaction tests pass
 - [x] Long-term graph production and mobile gates pass
 - [x] Long-term granularity update deployed and verified live
+- [x] Calendar Week, Month, and Year granularity implemented
+- [x] Calendar boundary aggregation tests pass
+- [x] Calendar granularity production gates pass
+- [ ] Calendar granularity update deployed and verified live

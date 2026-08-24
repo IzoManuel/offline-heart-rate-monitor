@@ -18,7 +18,10 @@ const GRANULARITIES = [
   { value: 60000, label: '1 Minute' },
   { value: 900000, label: '15 Minutes' },
   { value: 3600000, label: '1 Hour' },
-  { value: 86400000, label: '1 Day' }
+  { value: 86400000, label: '1 Day' },
+  { value: 'week', label: '1 Week' },
+  { value: 'month', label: '1 Month' },
+  { value: 'year', label: '1 Year' }
 ];
 
 function TrendGraph({ points }) {
@@ -32,7 +35,9 @@ function TrendGraph({ points }) {
   const storedStart = storedPoints[0]?.timestamp;
   const storedEnd = storedPoints.at(-1)?.timestamp;
   const effectiveBucketMs = useMemo(() => {
-    if (granularity !== 'auto') return Number(granularity);
+    if (granularity !== 'auto') return ['week', 'month', 'year'].includes(granularity)
+      ? granularity
+      : Number(granularity);
     const target = Math.max(5000, Math.ceil(
       Math.max(0, (storedEnd ?? 0) - (storedStart ?? 0)) / 500 / 5000
     ) * 5000);
@@ -42,6 +47,9 @@ function TrendGraph({ points }) {
     () => aggregateChartPoints(storedPoints, effectiveBucketMs),
     [storedPoints, effectiveBucketMs]
   );
+  const gapThresholdMs = typeof effectiveBucketMs === 'number'
+    ? effectiveBucketMs * 3
+    : { week: 21 * 86400000, month: 93 * 86400000, year: 1098 * 86400000 }[effectiveBucketMs];
   const start = validPoints[0]?.timestamp;
   const end = validPoints.at(-1)?.timestamp;
 
@@ -60,12 +68,12 @@ function TrendGraph({ points }) {
       const previous = samples[index - 1];
       const beginsSegment = index === 0 ||
         previous.sessionStartedAt !== point.sessionStartedAt ||
-        point.timestamp - previous.timestamp > effectiveBucketMs * 3;
+        point.timestamp - previous.timestamp > gapThresholdMs;
       return `${beginsSegment ? 'M' : 'L'} ${x(point.timestamp).toFixed(1)} ${y(point[series.key]).toFixed(1)}`;
     }).join(' ');
 
     return { ...series, samples, min, max, path, latest: values.at(-1), x, y };
-  }), [validPoints, start, end, effectiveBucketMs]);
+  }), [validPoints, start, end, gapThresholdMs]);
   const plottedSeries = chartSeries.filter(series => selected.has(series.key));
 
   const inspectedPoint = inspectedIndex === null ? null : validPoints[inspectedIndex];
@@ -213,7 +221,7 @@ function TrendGraph({ points }) {
       <div className="trend-inspector" aria-live="polite">
         <strong>{inspectedPoint ? formatOccurrenceTime(inspectedPoint.timestamp) : 'Inspect A Point'}</strong>
         <span>{inspectedPoint
-          ? `${effectiveBucketMs <= 5000 ? 'Exact Sampled' : 'Averaged'} Values`
+          ? `${effectiveBucketMs === 5000 ? 'Exact Sampled' : 'Averaged'} Values`
           : 'Hover, tap, or focus the chart and use the arrow keys'}</span>
         {inspectedPoint && (
           <dl>
