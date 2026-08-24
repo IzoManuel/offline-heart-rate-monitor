@@ -185,4 +185,4 @@
 - [x] Disconnected-session and large-time gaps remain unconnected
 - [x] Aggregation and compaction tests pass
 - [x] Long-term graph production and mobile gates pass
-- [ ] Long-term granularity update deployed and verified live
+- [x] Long-term granularity update deployed and verified live
