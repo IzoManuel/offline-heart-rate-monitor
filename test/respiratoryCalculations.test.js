@@ -29,6 +29,23 @@ test('estimates a clear resting breathing rhythm from uneven RR timing', () => {
   assert.match(result.method, /Lomb/);
 });
 
+test('matches the Android BRPM parity fixture exactly', () => {
+  const expectedBrpm = 15;
+  let elapsedSeconds = 0;
+  const readings = Array.from({ length: 140 }, () => {
+    const interval = 900 + 55 * Math.sin(
+      2 * Math.PI * (expectedBrpm / 60) * elapsedSeconds
+    );
+    elapsedSeconds += interval / 1000;
+    return { heartRate: 60000 / interval, rrIntervals: [interval] };
+  });
+
+  const result = estimateRespiratoryRate(readings);
+  assert.equal(result.available, true);
+  assert.ok(Math.abs(result.breathsPerMinute - 15.05749631999197) < 1e-7);
+  assert.equal(result.rrCount, 140);
+});
+
 test('estimates a second rate independently from another two-minute window', () => {
   const result = estimateRespiratoryRate(createRespiratorySignal({ breathsPerMinute: 19 }));
 

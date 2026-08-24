@@ -35,3 +35,15 @@ test('requires sixty physiologically plausible intervals', () => {
   assert.equal(result.error, null);
   assert.equal(result.rrCount, 60);
 });
+
+test('withholds SDNN when NN filtering removes the series', () => {
+  const intervals = [...Array(30).fill(300), ...Array(30).fill(2000)];
+  const result = analyzeHRV(intervals.map(interval => ({
+    heartRate: 72,
+    rrIntervals: [interval]
+  })));
+
+  assert.equal(result.error, null);
+  assert.ok(Number.isFinite(result.rmssd));
+  assert.equal(result.sdnn, null);
+});
