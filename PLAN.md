@@ -163,4 +163,4 @@
 - [x] Graph checkboxes affect only plotted lines and markers
 - [x] All metric and graph value cards remain constant
 - [x] Graph-selector scope update passes production gates
-- [ ] Graph-selector scope update deployed and verified live
+- [x] Graph-selector scope update deployed and verified live
