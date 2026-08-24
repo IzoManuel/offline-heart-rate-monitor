@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatOccurrenceTime } from '../utils/timeFormatting';
 
 /**
  * HRVAnalysis Component
@@ -18,7 +19,8 @@ import React from 'react';
 function HRVAnalysis({
   isConnected,
   analysisState,
-  results
+  results,
+  rmssdExtrema
 }) {
   // Don't show if not connected
   if (!isConnected) return null;
@@ -82,6 +84,10 @@ function HRVAnalysis({
                   {results.rmssd.toFixed(1)} <span className="hrv-unit">ms</span>
                 </span>
                 <span className="hrv-metric-description">Short-Term Variability</span>
+                <div className="metric-extrema">
+                  <span>Min {rmssdExtrema?.min.value.toFixed(1) ?? '—'} ms · {formatOccurrenceTime(rmssdExtrema?.min.occurredAt)}</span>
+                  <span>Max {rmssdExtrema?.max.value.toFixed(1) ?? '—'} ms · {formatOccurrenceTime(rmssdExtrema?.max.occurredAt)}</span>
+                </div>
               </div>
 
               <div className="hrv-metric">

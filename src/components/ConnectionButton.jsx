@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatOccurrenceTime } from '../utils/timeFormatting';
 
 function ConnectionButton({
   isConnected,
@@ -9,6 +10,9 @@ function ConnectionButton({
   sensorLocation,
   currentHR,
   analysisResults,
+  heartRateStats,
+  rmssdExtrema,
+  brpmExtrema,
   onConnect,
   onDisconnect
 }) {
@@ -69,12 +73,20 @@ function ConnectionButton({
                 <div className="connection-summary-item">
                   <span>Heart Rate</span>
                   <strong>{currentHR || '—'} <small>BPM</small></strong>
+                  <div className="summary-extrema">
+                    <span>Min {heartRateStats.min || '—'} · {formatOccurrenceTime(heartRateStats.minAt)}</span>
+                    <span>Max {heartRateStats.max || '—'} · {formatOccurrenceTime(heartRateStats.maxAt)}</span>
+                  </div>
                 </div>
                 <div className="connection-summary-item">
                   <span>RMSSD</span>
                   <strong>
                     {analysisResults && !analysisResults.error ? analysisResults.rmssd.toFixed(1) : '—'} <small>ms</small>
                   </strong>
+                  <div className="summary-extrema">
+                    <span>Min {rmssdExtrema ? rmssdExtrema.min.value.toFixed(1) : '—'} · {formatOccurrenceTime(rmssdExtrema?.min.occurredAt)}</span>
+                    <span>Max {rmssdExtrema ? rmssdExtrema.max.value.toFixed(1) : '—'} · {formatOccurrenceTime(rmssdExtrema?.max.occurredAt)}</span>
+                  </div>
                 </div>
                 <div className="connection-summary-item">
                   <span>SDNN</span>
@@ -89,6 +101,10 @@ function ConnectionButton({
                       ? analysisResults.respiration.breathsPerMinute.toFixed(1)
                       : '—'} <small>BRPM</small>
                   </strong>
+                  <div className="summary-extrema">
+                    <span>Min {brpmExtrema ? brpmExtrema.min.value.toFixed(1) : '—'} · {formatOccurrenceTime(brpmExtrema?.min.occurredAt)}</span>
+                    <span>Max {brpmExtrema ? brpmExtrema.max.value.toFixed(1) : '—'} · {formatOccurrenceTime(brpmExtrema?.max.occurredAt)}</span>
+                  </div>
                 </div>
               </div>
 

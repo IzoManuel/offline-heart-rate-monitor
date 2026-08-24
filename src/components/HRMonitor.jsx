@@ -22,6 +22,7 @@ import {
   pruneRollingReadings,
   timestampReading
 } from '../utils/rollingAnalysis';
+import { calculateHeartRateStats, updateExtrema } from '../utils/sessionExtrema';
 
 function HRMonitor() {
   const [isConnected, setIsConnected] = useState(false);
@@ -42,6 +43,8 @@ function HRMonitor() {
   const [hrvClock, setHRVClock] = useState(Date.now());
   const [hrvReadings, setHRVReadings] = useState([]);
   const [hrvResults, setHRVResults] = useState(null);
+  const [rmssdExtrema, setRMSSDExtrema] = useState(null);
+  const [brpmExtrema, setBRPMExtrema] = useState(null);
   const hrvReadingsRef = useRef([]);
   const lastAnalysisAtRef = useRef(null);
 
@@ -59,24 +62,10 @@ function HRMonitor() {
     });
   };
 
-  // Calculate statistics
-  const stats = React.useMemo(() => {
-    if (heartRateReadings.length === 0) {
-      return { average: 0, max: 0, min: 0 };
-    }
-
-    const validReadings = heartRateReadings.filter(hr => hr > 0);
-    if (validReadings.length === 0) {
-      return { average: 0, max: 0, min: 0 };
-    }
-
-    const sum = validReadings.reduce((acc, hr) => acc + hr, 0);
-    const average = Math.round(sum / validReadings.length);
-    const max = Math.max(...validReadings);
-    const min = Math.min(...validReadings);
-
-    return { average, max, min };
-  }, [heartRateReadings]);
+  const stats = useMemo(
+    () => calculateHeartRateStats(heartRateReadings),
+    [heartRateReadings]
+  );
 
   // Register playback callbacks with debug system
   useEffect(() => {
@@ -95,7 +84,10 @@ function HRMonitor() {
       onReading: (data) => {
         // Playback reading callback
         setCurrentHR(data.heartRate);
-        setHeartRateReadings(prev => [...prev, data.heartRate]);
+        setHeartRateReadings(previous => [
+          ...previous,
+          { value: data.heartRate, receivedAt: Date.now() }
+        ]);
 
         collectRRReading(data);
       },
@@ -185,7 +177,10 @@ function HRMonitor() {
         debugRecorder.recordReading(data);
 
         setCurrentHR(data.heartRate);
-        setHeartRateReadings(prev => [...prev, data.heartRate]);
+        setHeartRateReadings(previous => [
+          ...previous,
+          { value: data.heartRate, receivedAt: Date.now() }
+        ]);
 
         collectRRReading(data);
       });
@@ -253,6 +248,8 @@ function HRMonitor() {
     setHRVReadings([]);
     hrvReadingsRef.current = [];
     setHRVResults(null);
+    setRMSSDExtrema(null);
+    setBRPMExtrema(null);
     lastAnalysisAtRef.current = startedAt;
   }, [isConnected]);
 
@@ -270,7 +267,18 @@ function HRMonitor() {
       const retained = pruneRollingReadings(hrvReadingsRef.current, now);
       hrvReadingsRef.current = retained;
       setHRVReadings(retained);
-      setHRVResults(analyzeRollingWindow(retained, now));
+      const results = analyzeRollingWindow(retained, now);
+      setHRVResults(results);
+      if (!results.error) {
+        setRMSSDExtrema(previous => updateExtrema(previous, results.rmssd, now));
+      }
+      if (results.respiration.available) {
+        setBRPMExtrema(previous => updateExtrema(
+          previous,
+          results.respiration.breathsPerMinute,
+          now
+        ));
+      }
       lastAnalysisAtRef.current = now;
     }, 1000);
 
@@ -311,6 +319,9 @@ function HRMonitor() {
           sensorLocation={sensorLocation}
           currentHR={currentHR}
           analysisResults={hrvResults}
+          heartRateStats={stats}
+          rmssdExtrema={rmssdExtrema}
+          brpmExtrema={brpmExtrema}
           onConnect={handleConnect}
           onDisconnect={handleDisconnect}
         />
@@ -329,10 +340,12 @@ function HRMonitor() {
               isConnected={isConnected}
               analysisState={analysisState}
               results={hrvResults}
+              rmssdExtrema={rmssdExtrema}
             />
             <RespiratoryAnalysis
               results={hrvResults}
               rrCount={analysisState.rrCount}
+              brpmExtrema={brpmExtrema}
             />
           </>
         )}

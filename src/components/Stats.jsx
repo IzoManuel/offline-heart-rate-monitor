@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatOccurrenceTime } from '../utils/timeFormatting';
 
 function Stats({ stats, readingsCount }) {
   return (
@@ -13,11 +14,13 @@ function Stats({ stats, readingsCount }) {
           <div className="stat-label">Maximum</div>
           <div className="stat-value">{stats.max}</div>
           <div className="stat-unit">BPM</div>
+          <div className="stat-time">{formatOccurrenceTime(stats.maxAt)}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Minimum</div>
           <div className="stat-value">{stats.min}</div>
           <div className="stat-unit">BPM</div>
+          <div className="stat-time">{formatOccurrenceTime(stats.minAt)}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Readings</div>

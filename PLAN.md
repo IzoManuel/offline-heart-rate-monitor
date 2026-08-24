@@ -33,6 +33,15 @@
    - Use title case for visible labels unless the label is an acronym such as BPM, HRV, RR, RMSSD, SDNN, or BRPM.
    - Rename the compact “Resting Respiration” card to “BRPM”; do not describe live exercise data as resting.
    - Review the mobile connected summary again after the copy and timing changes.
+12. Add timestamped BPM, RMSSD, and BRPM extrema without adding cards.
+   - Store the receipt time of every heart-rate reading for the active connection session.
+   - Add the occurrence time to the existing detailed Maximum and Minimum BPM cards.
+   - Track RMSSD minimum and maximum values across valid five-second rolling refreshes, including when each occurred.
+   - Add RMSSD minimum/maximum values and times inside the existing detailed RMSSD card.
+   - Add BPM minimum/maximum values and times inside the existing summary Heart Rate card.
+   - Add RMSSD minimum/maximum values and times inside the existing summary RMSSD card.
+   - Track BRPM minimum/maximum values across valid estimates and add their times inside the existing detailed and summary BRPM cards.
+   - Preserve the current number of detailed and summary cards and verify the denser cards on mobile.
 
 ### Respiratory-analysis brainstorm
 
@@ -74,3 +83,13 @@
 - [x] Summary respiratory card renamed to BRPM
 - [x] Updated rolling analysis tests and mobile visual review pass
 - [x] Rolling-analysis update deployed and verified live
+- [x] Timestamped session BPM extrema tracked and tested
+- [x] Timestamped rolling RMSSD extrema tracked and tested
+- [x] Timestamped rolling BRPM extrema tracked and tested
+- [x] Existing detailed BPM cards show occurrence times
+- [x] Existing detailed RMSSD card includes minimum/maximum times
+- [x] Existing summary Heart Rate and RMSSD cards include extrema and times
+- [x] Existing detailed and summary BRPM cards include extrema and times
+- [x] No additional metric cards introduced
+- [x] Denser cards reviewed on mobile
+- [ ] Timestamped-extrema update deployed and verified live
