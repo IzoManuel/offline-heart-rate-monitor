@@ -143,4 +143,4 @@
 - [x] Saved graph restores while disconnected and clears with saved data
 - [x] Selectable accessible multi-metric trend graph implemented
 - [x] Graph/storage unit tests and mobile production gates pass
-- [ ] Trend graph update deployed and verified live
+- [x] Trend graph update deployed and verified live
