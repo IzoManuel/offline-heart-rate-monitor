@@ -117,4 +117,4 @@
 - [x] Clear Saved Data requires explicit confirmation
 - [x] Cancelling confirmation leaves the saved session intact
 - [x] Protected-clear update passes production gates
-- [ ] Protected-clear update deployed and verified live
+- [x] Protected-clear update deployed and verified live
