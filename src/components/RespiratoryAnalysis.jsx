@@ -31,6 +31,7 @@ function RespiratoryAnalysis({ results, rrCount, brpmExtrema }) {
             </span>
             <div className="metric-extrema respiratory-extrema">
               <span>Min {brpmExtrema?.min.value.toFixed(1) ?? '—'} BRPM · {formatOccurrenceTime(brpmExtrema?.min.occurredAt)}</span>
+              <span>Average {Number.isFinite(brpmExtrema?.average) ? brpmExtrema.average.toFixed(1) : '—'} BRPM</span>
               <span>Max {brpmExtrema?.max.value.toFixed(1) ?? '—'} BRPM · {formatOccurrenceTime(brpmExtrema?.max.occurredAt)}</span>
             </div>
           </div>

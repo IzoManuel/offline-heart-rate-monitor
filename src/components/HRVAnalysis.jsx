@@ -20,7 +20,8 @@ function HRVAnalysis({
   isConnected,
   analysisState,
   results,
-  rmssdExtrema
+  rmssdExtrema,
+  sdnnExtrema
 }) {
   // Keep the latest completed analysis visible when it has been restored locally.
   if (!isConnected && !results) return null;
@@ -66,7 +67,7 @@ function HRVAnalysis({
         <div className="hrv-results">
           <h3>Latest Results</h3>
           <p className="hrv-note">
-            Updated {new Date(results.analyzedAt).toLocaleTimeString()}
+            Updated {formatOccurrenceTime(results.analyzedAt)}
           </p>
 
           {/* Warning message for suspicious RR intervals */}
@@ -86,6 +87,7 @@ function HRVAnalysis({
                 <span className="hrv-metric-description">Short-Term Variability</span>
                 <div className="metric-extrema">
                   <span>Min {rmssdExtrema?.min.value.toFixed(1) ?? '—'} ms · {formatOccurrenceTime(rmssdExtrema?.min.occurredAt)}</span>
+                  <span>Average {Number.isFinite(rmssdExtrema?.average) ? rmssdExtrema.average.toFixed(1) : '—'} ms</span>
                   <span>Max {rmssdExtrema?.max.value.toFixed(1) ?? '—'} ms · {formatOccurrenceTime(rmssdExtrema?.max.occurredAt)}</span>
                 </div>
               </div>
@@ -96,6 +98,11 @@ function HRVAnalysis({
                   {results.sdnn.toFixed(1)} <span className="hrv-unit">ms</span>
                 </span>
                 <span className="hrv-metric-description">Overall Variability</span>
+                <div className="metric-extrema">
+                  <span>Min {sdnnExtrema?.min.value.toFixed(1) ?? '—'} ms · {formatOccurrenceTime(sdnnExtrema?.min.occurredAt)}</span>
+                  <span>Average {Number.isFinite(sdnnExtrema?.average) ? sdnnExtrema.average.toFixed(1) : '—'} ms</span>
+                  <span>Max {sdnnExtrema?.max.value.toFixed(1) ?? '—'} ms · {formatOccurrenceTime(sdnnExtrema?.max.occurredAt)}</span>
+                </div>
               </div>
 
               <div className="hrv-metric">

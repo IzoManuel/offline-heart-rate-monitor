@@ -55,6 +55,25 @@
    - Require an explicit confirmation before Clear Saved Data removes the local snapshot.
    - Keep cancellation non-destructive and use a mobile-accessible browser dialog.
    - Rebuild, test, deploy, and verify the updated production bundle.
+15. Add consistent metric summaries and a bounded selectable trend graph.
+   - Remove seconds from all displayed occurrence/update/save times while retaining exact timestamps internally.
+   - Extend the existing RMSSD and BRPM cards with session average values, and add minimum, average, and maximum values with occurrence times to SDNN without adding metric cards.
+   - Sample one compact graph point every five seconds containing Heart Rate and the latest valid RMSSD, SDNN, and BRPM values.
+   - Store graph points asynchronously in IndexedDB rather than synchronous localStorage, retain only the latest session, and cap history at 1,440 points (about two hours at five-second resolution).
+   - Restore the graph without a Bluetooth connection, clear its IndexedDB history together with Clear Saved Data, and fail safely if storage is unavailable or evicted.
+   - Render one accessible time-series chart with selectable Heart Rate, RMSSD, SDNN, and BRPM series.
+   - Normalize each selected line to its own observed range for the shared plot while showing raw units and ranges, avoiding a misleading shared numeric axis for BPM, milliseconds, and BRPM.
+   - Distinguish series by labels, color, and line pattern; include a textual latest-value summary and mobile-friendly controls.
+   - Add deterministic tests for bounded history and metric averages, perform responsive review, rebuild, deploy, and verify live.
+
+### Trend-graph and storage research decisions
+
+- Use IndexedDB for chart history because it stores structured records asynchronously; keep localStorage only for the tiny latest-summary snapshot already established.
+- Bound storage by point count and latest-session scope instead of relying on browser quota. At 1,440 compact records, the app retains about two hours and remains far below typical origin quotas.
+- Treat browser persistence as best effort: storage may be cleared by the user or browser, so chart restoration must never be required for live monitoring.
+- Use a line chart for time-series trends. Because BPM, HRV milliseconds, and BRPM have incompatible units and ranges, plot per-series relative position rather than implying that raw heights share one clinical scale.
+- Make raw values, units, observed ranges, selectable series, and line patterns explicit. The chart is for trend exploration, not diagnosis or cross-metric magnitude comparison.
+- Describe RMSSD and SDNN as HRV metrics; do not label BRPM as a direct vagal measure.
 
 ### Respiratory-analysis brainstorm
 
@@ -118,3 +137,10 @@
 - [x] Cancelling confirmation leaves the saved session intact
 - [x] Protected-clear update passes production gates
 - [x] Protected-clear update deployed and verified live
+- [x] Displayed times omit seconds
+- [x] RMSSD, SDNN, and BRPM cards consistently show minimum, average, and maximum
+- [x] Five-second graph sampling and two-hour bounded IndexedDB history implemented
+- [x] Saved graph restores while disconnected and clears with saved data
+- [x] Selectable accessible multi-metric trend graph implemented
+- [x] Graph/storage unit tests and mobile production gates pass
+- [ ] Trend graph update deployed and verified live

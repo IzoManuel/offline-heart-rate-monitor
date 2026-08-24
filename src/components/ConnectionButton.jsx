@@ -13,6 +13,7 @@ function ConnectionButton({
   analysisResults,
   heartRateStats,
   rmssdExtrema,
+  sdnnExtrema,
   brpmExtrema,
   savedSession,
   onClearSavedData,
@@ -47,6 +48,7 @@ function ConnectionButton({
       analysisResults={analysisResults}
       heartRateStats={heartRateStats}
       rmssdExtrema={rmssdExtrema}
+      sdnnExtrema={sdnnExtrema}
       brpmExtrema={brpmExtrema}
       deviceInfo={deviceInfo}
       sensorLocation={sensorLocation}

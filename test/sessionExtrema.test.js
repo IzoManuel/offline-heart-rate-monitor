@@ -23,10 +23,12 @@ test('updates RMSSD extrema while preserving occurrence times', () => {
 
   assert.deepEqual(extrema.min, { value: 35.2, occurredAt: 10000 });
   assert.deepEqual(extrema.max, { value: 51.8, occurredAt: 15000 });
+  assert.equal(extrema.average, 42.4);
+  assert.equal(extrema.count, 4);
 });
 
 test('ignores invalid extrema samples', () => {
-  const extrema = { min: { value: 20, occurredAt: 1 }, max: { value: 30, occurredAt: 2 } };
+  const extrema = { min: { value: 20, occurredAt: 1 }, max: { value: 30, occurredAt: 2 }, average: 25, count: 2, total: 50 };
   assert.deepEqual(updateExtrema(extrema, Number.NaN, 3), extrema);
 });
 
@@ -37,4 +39,5 @@ test('tracks decimal BRPM extrema and their refresh times', () => {
 
   assert.deepEqual(extrema.min, { value: 13.8, occurredAt: 10000 });
   assert.deepEqual(extrema.max, { value: 17.1, occurredAt: 15000 });
+  assert.ok(Math.abs(extrema.average - 15.433333333333333) < 1e-10);
 });

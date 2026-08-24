@@ -28,6 +28,7 @@ function snapshot() {
     readingsCount: 240,
     analysisResults: { rmssd: 44.2, sdnn: 51.3, analyzedAt: 5000 },
     rmssdExtrema: { min: { value: 40, occurredAt: 3000 }, max: { value: 48, occurredAt: 4000 } },
+    sdnnExtrema: { min: { value: 48, occurredAt: 3000 }, max: { value: 55, occurredAt: 4000 } },
     brpmExtrema: { min: { value: 13.5, occurredAt: 3000 }, max: { value: 16.2, occurredAt: 4000 } }
   });
 }

@@ -8,6 +8,7 @@ export function createSessionSnapshot({
   readingsCount,
   analysisResults,
   rmssdExtrema,
+  sdnnExtrema,
   brpmExtrema,
   savedAt = Date.now()
 }) {
@@ -20,6 +21,7 @@ export function createSessionSnapshot({
     readingsCount,
     analysisResults,
     rmssdExtrema,
+    sdnnExtrema,
     brpmExtrema
   };
 }

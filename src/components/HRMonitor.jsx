@@ -4,6 +4,7 @@ import HRDisplay from './HRDisplay';
 import Stats from './Stats';
 import HRVAnalysis from './HRVAnalysis';
 import RespiratoryAnalysis from './RespiratoryAnalysis';
+import TrendGraph from './TrendGraph';
 import {
   connectToHeartRateMonitor,
   startHeartRateNotifications,
@@ -29,6 +30,12 @@ import {
   loadSessionSnapshot,
   saveSessionSnapshot
 } from '../utils/sessionStorage';
+import {
+  boundChartPoints,
+  clearChartPoints,
+  loadChartPoints,
+  saveChartPoint
+} from '../utils/chartStorage';
 
 function HRMonitor() {
   const [isConnected, setIsConnected] = useState(false);
@@ -52,9 +59,13 @@ function HRMonitor() {
   const [hrvReadings, setHRVReadings] = useState([]);
   const [hrvResults, setHRVResults] = useState(null);
   const [rmssdExtrema, setRMSSDExtrema] = useState(null);
+  const [sdnnExtrema, setSDNNExtrema] = useState(null);
   const [brpmExtrema, setBRPMExtrema] = useState(null);
+  const [chartPoints, setChartPoints] = useState([]);
   const hrvReadingsRef = useRef([]);
   const lastAnalysisAtRef = useRef(null);
+  const currentHRRef = useRef(0);
+  const hrvResultsRef = useRef(null);
 
   const collectRRReading = (data) => {
     if (!data.rrIntervals?.length) return;
@@ -89,6 +100,7 @@ function HRMonitor() {
         setSessionStartedAt(Date.now());
         setHRVResults(null);
         setRMSSDExtrema(null);
+        setSDNNExtrema(null);
         setBRPMExtrema(null);
         setHRVReadings([]);
         setError('');
@@ -170,6 +182,7 @@ function HRMonitor() {
       setSessionStartedAt(Date.now());
       setHRVResults(null);
       setRMSSDExtrema(null);
+      setSDNNExtrema(null);
       setBRPMExtrema(null);
       setServer(gattServer);
       const deviceNameStr = gattServer.device.name || 'Unknown Device';
@@ -267,6 +280,7 @@ function HRMonitor() {
     hrvReadingsRef.current = [];
     setHRVResults(null);
     setRMSSDExtrema(null);
+    setSDNNExtrema(null);
     setBRPMExtrema(null);
     lastAnalysisAtRef.current = startedAt;
   }, [isConnected]);
@@ -289,6 +303,7 @@ function HRMonitor() {
       setHRVResults(results);
       if (!results.error) {
         setRMSSDExtrema(previous => updateExtrema(previous, results.rmssd, now));
+        setSDNNExtrema(previous => updateExtrema(previous, results.sdnn, now));
       }
       if (results.respiration.available) {
         setBRPMExtrema(previous => updateExtrema(
@@ -322,6 +337,46 @@ function HRMonitor() {
   }, [isConnected, analysisStartedAt, hrvClock, hrvReadings]);
 
   useEffect(() => {
+    currentHRRef.current = currentHR;
+    hrvResultsRef.current = hrvResults;
+  }, [currentHR, hrvResults]);
+
+  useEffect(() => {
+    if (!isConnected || !sessionStartedAt) return;
+
+    clearChartPoints();
+    setChartPoints([]);
+    const sample = () => {
+      if (!currentHRRef.current) return;
+      const results = hrvResultsRef.current;
+      const point = {
+        sessionStartedAt,
+        timestamp: Date.now(),
+        heartRate: currentHRRef.current,
+        rmssd: results && !results.error ? results.rmssd : null,
+        sdnn: results && !results.error ? results.sdnn : null,
+        brpm: results?.respiration?.available
+          ? results.respiration.breathsPerMinute
+          : null
+      };
+      setChartPoints(previous => boundChartPoints([...previous, point]));
+      saveChartPoint(point);
+    };
+
+    const timer = setInterval(sample, ANALYSIS_REFRESH_INTERVAL);
+    return () => clearInterval(timer);
+  }, [isConnected, sessionStartedAt]);
+
+  useEffect(() => {
+    if (isConnected || !savedSession?.sessionStartedAt) return;
+    let active = true;
+    loadChartPoints(savedSession.sessionStartedAt).then(points => {
+      if (active) setChartPoints(points);
+    });
+    return () => { active = false; };
+  }, [isConnected, savedSession?.sessionStartedAt]);
+
+  useEffect(() => {
     if (!isConnected || !sessionStartedAt || heartRateReadings.length === 0) return;
 
     const snapshot = createSessionSnapshot({
@@ -331,6 +386,7 @@ function HRMonitor() {
       readingsCount: heartRateReadings.length,
       analysisResults: hrvResults,
       rmssdExtrema,
+      sdnnExtrema,
       brpmExtrema
     });
     saveSessionSnapshot(snapshot);
@@ -343,12 +399,15 @@ function HRMonitor() {
     heartRateReadings.length,
     hrvResults,
     rmssdExtrema,
+    sdnnExtrema,
     brpmExtrema
   ]);
 
   const handleClearSavedData = () => {
     clearSessionSnapshot();
+    clearChartPoints();
     setSavedSession(null);
+    setChartPoints([]);
   };
 
   const displayedCurrentHR = isConnected ? currentHR : savedSession?.currentHR ?? 0;
@@ -358,6 +417,7 @@ function HRMonitor() {
     : savedSession?.readingsCount ?? 0;
   const displayedResults = isConnected ? hrvResults : savedSession?.analysisResults;
   const displayedRMSSDExtrema = isConnected ? rmssdExtrema : savedSession?.rmssdExtrema;
+  const displayedSDNNExtrema = isConnected ? sdnnExtrema : savedSession?.sdnnExtrema;
   const displayedBRPMExtrema = isConnected ? brpmExtrema : savedSession?.brpmExtrema;
   const hasDisplayedData = isConnected || Boolean(savedSession);
 
@@ -379,6 +439,7 @@ function HRMonitor() {
           analysisResults={displayedResults}
           heartRateStats={displayedStats}
           rmssdExtrema={displayedRMSSDExtrema}
+          sdnnExtrema={displayedSDNNExtrema}
           brpmExtrema={displayedBRPMExtrema}
           savedSession={isConnected ? null : savedSession}
           onClearSavedData={handleClearSavedData}
@@ -401,12 +462,14 @@ function HRMonitor() {
               analysisState={analysisState}
               results={displayedResults}
               rmssdExtrema={displayedRMSSDExtrema}
+              sdnnExtrema={displayedSDNNExtrema}
             />
             <RespiratoryAnalysis
               results={displayedResults}
               rrCount={isConnected ? analysisState.rrCount : 0}
               brpmExtrema={displayedBRPMExtrema}
             />
+            <TrendGraph points={chartPoints} />
           </>
         )}
 

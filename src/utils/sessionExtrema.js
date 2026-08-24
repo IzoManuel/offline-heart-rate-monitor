@@ -2,11 +2,17 @@ export function updateExtrema(extrema, value, occurredAt) {
   if (!Number.isFinite(value)) return extrema;
 
   const point = { value, occurredAt };
-  if (!extrema) return { min: point, max: point };
+  if (!extrema) return { min: point, max: point, average: value, count: 1, total: value };
+
+  const count = (extrema.count ?? 1) + 1;
+  const total = (extrema.total ?? extrema.average ?? extrema.min.value) + value;
 
   return {
     min: value < extrema.min.value ? point : extrema.min,
-    max: value > extrema.max.value ? point : extrema.max
+    max: value > extrema.max.value ? point : extrema.max,
+    average: total / count,
+    count,
+    total
   };
 }
 

@@ -6,6 +6,7 @@ function MetricSummary({
   analysisResults,
   heartRateStats,
   rmssdExtrema,
+  sdnnExtrema,
   brpmExtrema,
   deviceInfo,
   sensorLocation,
@@ -25,6 +26,7 @@ function MetricSummary({
           <strong>{currentHR || '—'} <small>BPM</small></strong>
           <div className="summary-extrema">
             <span>Min {heartRateStats?.min || '—'} · {formatOccurrenceTime(heartRateStats?.minAt)}</span>
+            <span>Average {heartRateStats?.average || '—'} BPM</span>
             <span>Max {heartRateStats?.max || '—'} · {formatOccurrenceTime(heartRateStats?.maxAt)}</span>
           </div>
         </div>
@@ -35,6 +37,7 @@ function MetricSummary({
           </strong>
           <div className="summary-extrema">
             <span>Min {rmssdExtrema ? rmssdExtrema.min.value.toFixed(1) : '—'} · {formatOccurrenceTime(rmssdExtrema?.min.occurredAt)}</span>
+            <span>Average {Number.isFinite(rmssdExtrema?.average) ? rmssdExtrema.average.toFixed(1) : '—'} ms</span>
             <span>Max {rmssdExtrema ? rmssdExtrema.max.value.toFixed(1) : '—'} · {formatOccurrenceTime(rmssdExtrema?.max.occurredAt)}</span>
           </div>
         </div>
@@ -43,6 +46,11 @@ function MetricSummary({
           <strong>
             {analysisResults && !analysisResults.error ? analysisResults.sdnn.toFixed(1) : '—'} <small>ms</small>
           </strong>
+          <div className="summary-extrema">
+            <span>Min {sdnnExtrema ? sdnnExtrema.min.value.toFixed(1) : '—'} · {formatOccurrenceTime(sdnnExtrema?.min.occurredAt)}</span>
+            <span>Average {Number.isFinite(sdnnExtrema?.average) ? sdnnExtrema.average.toFixed(1) : '—'} ms</span>
+            <span>Max {sdnnExtrema ? sdnnExtrema.max.value.toFixed(1) : '—'} · {formatOccurrenceTime(sdnnExtrema?.max.occurredAt)}</span>
+          </div>
         </div>
         <div className="connection-summary-item">
           <span>BRPM</span>
@@ -53,6 +61,7 @@ function MetricSummary({
           </strong>
           <div className="summary-extrema">
             <span>Min {brpmExtrema ? brpmExtrema.min.value.toFixed(1) : '—'} · {formatOccurrenceTime(brpmExtrema?.min.occurredAt)}</span>
+            <span>Average {Number.isFinite(brpmExtrema?.average) ? brpmExtrema.average.toFixed(1) : '—'} BRPM</span>
             <span>Max {brpmExtrema ? brpmExtrema.max.value.toFixed(1) : '—'} · {formatOccurrenceTime(brpmExtrema?.max.occurredAt)}</span>
           </div>
         </div>
