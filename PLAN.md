@@ -154,4 +154,4 @@
 - [x] Hover/tap inspection shows exact selected values and time
 - [x] Keyboard chart inspection implemented
 - [x] Interactive-chart tests and production gates pass
-- [ ] Interactive-chart update deployed and verified live
+- [x] Interactive-chart update deployed and verified live
