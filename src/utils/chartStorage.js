@@ -1,4 +1,9 @@
-export const CHART_POINT_LIMIT = 1440;
+export const CHART_POINT_LIMIT = 10000;
+export const CHART_METRICS = ['heartRate', 'rmssd', 'sdnn', 'brpm'];
+
+function metricWeight(point, metric) {
+  return Number.isFinite(point[metric]) ? (point[`${metric}Count`] ?? 1) : 0;
+}
 const DATABASE_NAME = 'offline-hr-monitor-history';
 const DATABASE_VERSION = 1;
 const STORE_NAME = 'trend-points';
@@ -25,6 +30,81 @@ export function findNearestPointIndex(points, timestamp) {
   const before = points[low - 1];
   const after = points[low];
   return timestamp - before.timestamp <= after.timestamp - timestamp ? low - 1 : low;
+}
+
+export function aggregateChartPoints(points, bucketMs) {
+  const ordered = boundChartPoints(points, Number.MAX_SAFE_INTEGER);
+  if (!Number.isFinite(bucketMs) || bucketMs <= 5000) return ordered;
+
+  const buckets = new Map();
+  for (const point of ordered) {
+    const bucketStart = Math.floor(point.timestamp / bucketMs) * bucketMs;
+    const key = `${point.sessionStartedAt ?? 'unknown'}:${bucketStart}`;
+    let bucket = buckets.get(key);
+    if (!bucket) {
+      bucket = {
+        sessionStartedAt: point.sessionStartedAt,
+        timestamp: bucketStart,
+        sampleCount: 0,
+        metricTotals: Object.fromEntries(CHART_METRICS.map(metric => [metric, 0])),
+        metricCounts: Object.fromEntries(CHART_METRICS.map(metric => [metric, 0]))
+      };
+      buckets.set(key, bucket);
+    }
+    bucket.sampleCount += point.sampleCount ?? 1;
+    for (const metric of CHART_METRICS) {
+      if (Number.isFinite(point[metric])) {
+        const weight = metricWeight(point, metric);
+        bucket.metricTotals[metric] += point[metric] * weight;
+        bucket.metricCounts[metric] += weight;
+      }
+    }
+  }
+
+  return [...buckets.values()].map(bucket => ({
+    sessionStartedAt: bucket.sessionStartedAt,
+    timestamp: bucket.timestamp,
+    sampleCount: bucket.sampleCount,
+    ...Object.fromEntries(CHART_METRICS.map(metric => [
+      metric,
+      bucket.metricCounts[metric]
+        ? bucket.metricTotals[metric] / bucket.metricCounts[metric]
+        : null
+    ])),
+    ...Object.fromEntries(CHART_METRICS.map(metric => [`${metric}Count`, bucket.metricCounts[metric]]))
+  })).sort((a, b) => a.timestamp - b.timestamp);
+}
+
+export function compactChartPoints(points) {
+  const ordered = boundChartPoints(points, Number.MAX_SAFE_INTEGER);
+  const compacted = [];
+  for (let index = 0; index < ordered.length; index += 1) {
+    const first = ordered[index];
+    const second = ordered[index + 1];
+    if (!second || first.sessionStartedAt !== second.sessionStartedAt) {
+      compacted.push(first);
+      continue;
+    }
+    compacted.push({
+      sessionStartedAt: first.sessionStartedAt,
+      timestamp: Math.round((first.timestamp + second.timestamp) / 2),
+      sampleCount: (first.sampleCount ?? 1) + (second.sampleCount ?? 1),
+      ...Object.fromEntries(CHART_METRICS.map(metric => {
+        const firstWeight = metricWeight(first, metric);
+        const secondWeight = metricWeight(second, metric);
+        const totalWeight = firstWeight + secondWeight;
+        return [metric, totalWeight
+          ? ((first[metric] ?? 0) * firstWeight + (second[metric] ?? 0) * secondWeight) / totalWeight
+          : null];
+      })),
+      ...Object.fromEntries(CHART_METRICS.map(metric => [
+        `${metric}Count`,
+        metricWeight(first, metric) + metricWeight(second, metric)
+      ]))
+    });
+    index += 1;
+  }
+  return compacted;
 }
 
 function openDatabase() {
@@ -59,13 +139,11 @@ function transact(mode, operation) {
   }));
 }
 
-export async function loadChartPoints(sessionStartedAt) {
+export async function loadChartPoints() {
   try {
     return await transact('readonly', (store, resolve, reject) => {
       const request = store.getAll();
-      request.onsuccess = () => resolve(boundChartPoints(
-        request.result.filter(point => point.sessionStartedAt === sessionStartedAt)
-      ));
+      request.onsuccess = () => resolve(boundChartPoints(request.result));
       request.onerror = () => reject(request.error);
     });
   } catch {
@@ -82,22 +160,21 @@ export async function saveChartPoint(point) {
         const countRequest = store.count();
         countRequest.onerror = () => reject(countRequest.error);
         countRequest.onsuccess = () => {
-          let excess = countRequest.result - CHART_POINT_LIMIT;
-          if (excess <= 0) {
+          if (countRequest.result <= CHART_POINT_LIMIT) {
             resolve();
             return;
           }
-          const cursorRequest = store.openCursor();
-          cursorRequest.onerror = () => reject(cursorRequest.error);
-          cursorRequest.onsuccess = event => {
-            const cursor = event.target.result;
-            if (!cursor || excess <= 0) {
+          const allRequest = store.getAll();
+          allRequest.onerror = () => reject(allRequest.error);
+          allRequest.onsuccess = () => {
+            let compacted = compactChartPoints(allRequest.result);
+            while (compacted.length > CHART_POINT_LIMIT) compacted = compactChartPoints(compacted);
+            const clearRequest = store.clear();
+            clearRequest.onerror = () => reject(clearRequest.error);
+            clearRequest.onsuccess = () => {
+              compacted.forEach(compactedPoint => store.put(compactedPoint));
               resolve();
-              return;
-            }
-            cursor.delete();
-            excess -= 1;
-            cursor.continue();
+            };
           };
         };
       };

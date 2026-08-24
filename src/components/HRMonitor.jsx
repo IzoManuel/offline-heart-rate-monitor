@@ -31,8 +31,10 @@ import {
   saveSessionSnapshot
 } from '../utils/sessionStorage';
 import {
+  CHART_POINT_LIMIT,
   boundChartPoints,
   clearChartPoints,
+  compactChartPoints,
   loadChartPoints,
   saveChartPoint
 } from '../utils/chartStorage';
@@ -344,8 +346,6 @@ function HRMonitor() {
   useEffect(() => {
     if (!isConnected || !sessionStartedAt) return;
 
-    clearChartPoints();
-    setChartPoints([]);
     const sample = () => {
       if (!currentHRRef.current) return;
       const results = hrvResultsRef.current;
@@ -359,7 +359,9 @@ function HRMonitor() {
           ? results.respiration.breathsPerMinute
           : null
       };
-      setChartPoints(previous => boundChartPoints([...previous, point]));
+      setChartPoints(previous => previous.length >= CHART_POINT_LIMIT
+        ? compactChartPoints([...previous, point])
+        : boundChartPoints([...previous, point]));
       saveChartPoint(point);
     };
 
@@ -368,13 +370,13 @@ function HRMonitor() {
   }, [isConnected, sessionStartedAt]);
 
   useEffect(() => {
-    if (isConnected || !savedSession?.sessionStartedAt) return;
+    if (isConnected || !savedSession) return;
     let active = true;
-    loadChartPoints(savedSession.sessionStartedAt).then(points => {
+    loadChartPoints().then(points => {
       if (active) setChartPoints(points);
     });
     return () => { active = false; };
-  }, [isConnected, savedSession?.sessionStartedAt]);
+  }, [isConnected, Boolean(savedSession)]);
 
   useEffect(() => {
     if (!isConnected || !sessionStartedAt || heartRateReadings.length === 0) return;

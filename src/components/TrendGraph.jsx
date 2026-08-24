@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { formatOccurrenceTime } from '../utils/timeFormatting';
-import { findNearestPointIndex } from '../utils/chartStorage';
+import { aggregateChartPoints, findNearestPointIndex } from '../utils/chartStorage';
 
 const SERIES = [
   { key: 'heartRate', label: 'Heart Rate', unit: 'BPM', color: '#dc2626', dash: '' },
@@ -12,13 +12,35 @@ const SERIES = [
 const WIDTH = 680;
 const HEIGHT = 280;
 const PADDING = { top: 20, right: 18, bottom: 38, left: 42 };
+const GRANULARITIES = [
+  { value: 'auto', label: 'Auto' },
+  { value: 5000, label: '5 Seconds' },
+  { value: 60000, label: '1 Minute' },
+  { value: 900000, label: '15 Minutes' },
+  { value: 3600000, label: '1 Hour' },
+  { value: 86400000, label: '1 Day' }
+];
 
 function TrendGraph({ points }) {
   const [selected, setSelected] = useState(() => new Set(SERIES.map(series => series.key)));
   const [inspectedIndex, setInspectedIndex] = useState(null);
-  const validPoints = useMemo(
+  const storedPoints = useMemo(
     () => points.filter(point => Number.isFinite(point.timestamp)).sort((a, b) => a.timestamp - b.timestamp),
     [points]
+  );
+  const [granularity, setGranularity] = useState('auto');
+  const storedStart = storedPoints[0]?.timestamp;
+  const storedEnd = storedPoints.at(-1)?.timestamp;
+  const effectiveBucketMs = useMemo(() => {
+    if (granularity !== 'auto') return Number(granularity);
+    const target = Math.max(5000, Math.ceil(
+      Math.max(0, (storedEnd ?? 0) - (storedStart ?? 0)) / 500 / 5000
+    ) * 5000);
+    return target;
+  }, [granularity, storedStart, storedEnd]);
+  const validPoints = useMemo(
+    () => aggregateChartPoints(storedPoints, effectiveBucketMs),
+    [storedPoints, effectiveBucketMs]
   );
   const start = validPoints[0]?.timestamp;
   const end = validPoints.at(-1)?.timestamp;
@@ -34,12 +56,16 @@ function TrendGraph({ points }) {
       const relative = max === min ? 0.5 : (value - min) / (max - min);
       return PADDING.top + (1 - relative) * (HEIGHT - PADDING.top - PADDING.bottom);
     };
-    const path = samples.map((point, index) =>
-      `${index === 0 ? 'M' : 'L'} ${x(point.timestamp).toFixed(1)} ${y(point[series.key]).toFixed(1)}`
-    ).join(' ');
+    const path = samples.map((point, index) => {
+      const previous = samples[index - 1];
+      const beginsSegment = index === 0 ||
+        previous.sessionStartedAt !== point.sessionStartedAt ||
+        point.timestamp - previous.timestamp > effectiveBucketMs * 3;
+      return `${beginsSegment ? 'M' : 'L'} ${x(point.timestamp).toFixed(1)} ${y(point[series.key]).toFixed(1)}`;
+    }).join(' ');
 
     return { ...series, samples, min, max, path, latest: values.at(-1), x, y };
-  }), [validPoints, start, end]);
+  }), [validPoints, start, end, effectiveBucketMs]);
   const plottedSeries = chartSeries.filter(series => selected.has(series.key));
 
   const inspectedPoint = inspectedIndex === null ? null : validPoints[inspectedIndex];
@@ -82,8 +108,23 @@ function TrendGraph({ points }) {
           <h2 id="trend-heading">Metric Trends</h2>
           <p>Relative trend within each metric’s observed range</p>
         </div>
-        <span>{validPoints.length} Points</span>
+        <span>{validPoints.length} of {storedPoints.length} Points</span>
       </div>
+
+      <label className="trend-granularity">
+        <span>Granularity</span>
+        <select
+          value={granularity}
+          onChange={event => {
+            setGranularity(event.target.value);
+            setInspectedIndex(null);
+          }}
+        >
+          {GRANULARITIES.map(option => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
 
       <fieldset className="trend-controls">
         <legend>Choose Metrics</legend>
@@ -171,7 +212,9 @@ function TrendGraph({ points }) {
 
       <div className="trend-inspector" aria-live="polite">
         <strong>{inspectedPoint ? formatOccurrenceTime(inspectedPoint.timestamp) : 'Inspect A Point'}</strong>
-        <span>{inspectedPoint ? 'Exact Sampled Values' : 'Hover, tap, or focus the chart and use the arrow keys'}</span>
+        <span>{inspectedPoint
+          ? `${effectiveBucketMs <= 5000 ? 'Exact Sampled' : 'Averaged'} Values`
+          : 'Hover, tap, or focus the chart and use the arrow keys'}</span>
         {inspectedPoint && (
           <dl>
             {chartSeries.map(series => (

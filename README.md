@@ -10,7 +10,7 @@ After a reload, the app labels restored measurements as a **Saved Session** beca
 
 The **Metric Trends** graph at the bottom samples Heart Rate, RMSSD, SDNN, and BRPM every five seconds. Its checkboxes let you show or hide each series. Since these measurements use incompatible units and ranges, every line is positioned on a labeled 0–100% relative Y-axis using its own observed range; the raw latest value, unit, and range remain listed below the graph. Hover or tap the graph to inspect the exact sampled time and raw values. With keyboard focus on the graph, use Left Arrow, Right Arrow, Home, or End to inspect points. This makes within-metric trends comparable without implying that equal chart heights mean equal physiological magnitude.
 
-Graph history uses asynchronous IndexedDB rather than `localStorage` and is capped at 1,440 compact points—about two hours at five-second resolution. Only the latest session is retained. Clearing saved data removes both the summary snapshot and graph history.
+Graph history uses asynchronous IndexedDB rather than `localStorage` and is capped at 10,000 compact records. New sessions extend the history instead of deleting it. When the cap is reached, adjacent older samples are averaged so storage stays bounded while long-term trends can continue across weeks, months, or years. The Granularity selector offers Auto, 5 Seconds, 1 Minute, 15 Minutes, 1 Hour, and 1 Day; Auto limits rendered detail for mobile performance. Lines are not joined across disconnected sessions or large time gaps. Clearing saved data removes both the summary snapshot and the complete graph history.
 
 This project is based on [guyru/web-hr-monitor](https://github.com/guyru/web-hr-monitor) and retains its MIT license.
 

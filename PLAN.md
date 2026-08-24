@@ -76,6 +76,22 @@
    - Keep all four graph value/range cards and exact inspection values visible when their lines are hidden.
    - Use checkboxes only to show or hide graph paths and their inspection markers.
    - Rebuild, test, deploy, and verify the clarified interaction live.
+18. Support long-running history with bounded adaptive granularity.
+   - Stop clearing graph history on each new connection; keep sessions separated by visible gaps while the latest summary remains session-specific.
+   - Cap IndexedDB history at 10,000 compact records and progressively average adjacent older samples when the cap is reached instead of deleting the oldest history.
+   - Add Auto, 5-Second, 1-Minute, 15-Minute, 1-Hour, and 1-Day graph granularity controls.
+   - Aggregate each metric independently so missing HRV or BRPM values do not distort available Heart Rate data.
+   - Make Auto choose a bucket size that limits rendered points for mobile performance while preserving the full bounded history.
+   - Never draw lines across large sampling or disconnected-session gaps.
+   - Keep Clear Saved Data as the explicit way to erase both recent and long-term graph history.
+   - Add deterministic aggregation, compaction, and gap tests; perform mobile/build/PWA checks; deploy and verify live.
+
+### Long-term trend storage decision
+
+- A year of raw five-second samples would exceed 6.3 million records, so retaining every raw point indefinitely is intentionally avoided.
+- The database remains capped at 10,000 records. When full, adjacent records are averaged and compacted, trading old precision for long retention without unbounded storage.
+- Display granularity is independent of storage resolution: users can request a coarser view, while Auto targets a manageable number of SVG points.
+- Long-range values are trends derived from averages, not raw beat-level measurements; exact five-second detail is naturally concentrated in more recent history.
 
 ### Trend-graph and storage research decisions
 
@@ -164,3 +180,9 @@
 - [x] All metric and graph value cards remain constant
 - [x] Graph-selector scope update passes production gates
 - [x] Graph-selector scope update deployed and verified live
+- [x] Cross-session bounded adaptive history implemented
+- [x] Auto and manual graph granularity selection implemented
+- [x] Disconnected-session and large-time gaps remain unconnected
+- [x] Aggregation and compaction tests pass
+- [x] Long-term graph production and mobile gates pass
+- [ ] Long-term granularity update deployed and verified live

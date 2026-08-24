@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boundChartPoints, findNearestPointIndex } from '../src/utils/chartStorage.js';
+import {
+  aggregateChartPoints,
+  boundChartPoints,
+  compactChartPoints,
+  findNearestPointIndex
+} from '../src/utils/chartStorage.js';
 
 test('sorts chart history and retains only the newest bounded points', () => {
   const points = [5, 1, 4, 2, 3].map(timestamp => ({ timestamp }));
@@ -19,4 +24,42 @@ test('finds the nearest chart sample and favors the earlier point on a tie', () 
   assert.equal(findNearestPointIndex(points, -100), 0);
   assert.equal(findNearestPointIndex(points, 99999), 2);
   assert.equal(findNearestPointIndex([], 1000), -1);
+});
+
+test('aggregates each available metric independently within a session bucket', () => {
+  const points = [
+    { sessionStartedAt: 1, timestamp: 1000, heartRate: 60, rmssd: null },
+    { sessionStartedAt: 1, timestamp: 6000, heartRate: 80, rmssd: 40 },
+    { sessionStartedAt: 2, timestamp: 7000, heartRate: 100, rmssd: 60 }
+  ];
+  const aggregated = aggregateChartPoints(points, 60000);
+  assert.equal(aggregated.length, 2);
+  assert.equal(aggregated[0].heartRate, 70);
+  assert.equal(aggregated[0].rmssd, 40);
+  assert.equal(aggregated[1].heartRate, 100);
+});
+
+test('compacts adjacent samples without averaging across session boundaries', () => {
+  const points = [
+    { sessionStartedAt: 1, timestamp: 1000, heartRate: 60 },
+    { sessionStartedAt: 1, timestamp: 6000, heartRate: 80 },
+    { sessionStartedAt: 2, timestamp: 11000, heartRate: 100 }
+  ];
+  const compacted = compactChartPoints(points);
+  assert.equal(compacted.length, 2);
+  assert.equal(compacted[0].heartRate, 70);
+  assert.equal(compacted[0].sessionStartedAt, 1);
+  assert.equal(compacted[1].heartRate, 100);
+  assert.equal(compacted[1].sessionStartedAt, 2);
+});
+
+test('preserves weighted averages when already-compacted points are compacted again', () => {
+  const points = [
+    { sessionStartedAt: 1, timestamp: 1000, heartRate: 60, heartRateCount: 2, sampleCount: 2 },
+    { sessionStartedAt: 1, timestamp: 6000, heartRate: 90, heartRateCount: 1, sampleCount: 1 }
+  ];
+  const [compacted] = compactChartPoints(points);
+  assert.equal(compacted.heartRate, 70);
+  assert.equal(compacted.heartRateCount, 3);
+  assert.equal(compacted.sampleCount, 3);
 });
