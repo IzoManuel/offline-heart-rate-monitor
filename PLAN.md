@@ -97,6 +97,24 @@
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.
    - Preserve independent metric weighting, session gaps, hover/tap inspection, and constant metric cards at calendar granularities.
    - Add deterministic boundary tests, rebuild, deploy, and verify the options live.
+20. Replace normalized comparison with separate raw-value health graphs.
+   - Follow CDC guidance favoring separate visualizations when independently important metrics use different units or formatting.
+   - Follow WHO and ONS line-chart guidance: use linear numeric axes, include every visible value, allow a clearly labeled non-zero baseline, avoid excessively tight domains, and use clean rounded ticks.
+   - Put the graph area inside the established Show/Hide collapsible design without affecting collection or storage while collapsed.
+   - Render four genuinely separate plotting areas for Heart Rate, RMSSD, SDNN, and BRPM rather than four normalized lines in one plot.
+   - Label each Y-axis with its raw unit: BPM, ms, ms, and BRPM. Remove the calculated relative-percentage axis entirely.
+   - Derive each visible domain independently from that metric's displayed data, add meaningful padding, round outward to clean ticks, and include zero only when it is naturally close to the observed range.
+   - Keep synchronized X-axis range, granularity, hover/tap/keyboard inspection time, long-term adaptive storage, session gaps, and constant value cards.
+   - Keep metric checkboxes scoped to line visibility only; hiding a line must not remove its graph frame, axes, cards, or raw inspection values.
+   - Add deterministic raw-axis-domain and tick tests, perform mobile/build/PWA checks, deploy, and verify live.
+
+### Raw-axis research correction
+
+- The previous 0–100% min-max normalization is mathematically valid for comparing relative shape, but it is not a suitable primary display for reading these health measurements because the endpoints change with the visible data.
+- CDC recommends separate visualizations when metrics are independently important and require different formatting, and warns that combined charts can overload or mislead.
+- WHO confirms that a line-chart Y-axis need not start at zero, while warning that excessively compressed or expanded ranges can exaggerate or hide change.
+- ONS recommends that cropped line-chart axes retain substantial space below the first data point, extend beyond the maximum to a clean gridline, and use sensible rounded intervals.
+- Each graph therefore uses real units and an independently calculated, clearly labeled linear domain; the shared element is time, not a fabricated common Y scale.
 
 ### Trend-graph and storage research decisions
 
@@ -195,3 +213,11 @@
 - [x] Calendar boundary aggregation tests pass
 - [x] Calendar granularity production gates pass
 - [x] Calendar granularity update deployed and verified live
+- [x] Normalized percentage plot removed as primary display
+- [x] Four separate collapsible raw-value graphs implemented
+- [x] Independent clean numeric Y-axis domains and units implemented
+- [x] Shared granularity and synchronized inspection retained
+- [x] Checkboxes affect only raw graph lines
+- [x] Raw-axis and graph interaction tests pass
+- [x] Separate-graph mobile and production gates pass
+- [ ] Separate raw-graph update deployed and verified live

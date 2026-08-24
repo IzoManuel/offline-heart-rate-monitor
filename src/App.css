@@ -646,6 +646,45 @@ body {
   font: inherit;
 }
 
+.trend-expanded {
+  margin-top: var(--spacing-md);
+}
+
+.metric-charts-grid {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.metric-chart-card {
+  padding: var(--spacing-sm);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.metric-chart-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+}
+
+.metric-chart-heading h3 {
+  color: var(--text-primary);
+  font-size: var(--text-base);
+}
+
+.metric-chart-heading span {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.metric-chart-card .trend-chart-scroll {
+  background: var(--bg-primary);
+}
+
 .trend-controls legend {
   padding-inline: var(--spacing-xs);
   color: var(--text-secondary);
