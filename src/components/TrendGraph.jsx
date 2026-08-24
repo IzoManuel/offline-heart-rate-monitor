@@ -39,6 +39,13 @@ function MetricChart({ series, points, start, end, gapThresholdMs, inspectedPoin
       point.timestamp - previous.timestamp > gapThresholdMs;
     return `${beginsSegment ? 'M' : 'L'} ${x(point.timestamp).toFixed(1)} ${y(point[series.key]).toFixed(1)}`;
   }).join(' ');
+  const inspectedValue = inspectedPoint?.[series.key];
+  const hasInspectedValue = Number.isFinite(inspectedValue);
+  const inspectedX = inspectedPoint ? x(inspectedPoint.timestamp) : null;
+  const inspectedY = hasInspectedValue ? y(inspectedValue) : null;
+  const tooltipX = inspectedX > WIDTH - 175 ? inspectedX - 150 : inspectedX + 12;
+  const tooltipY = inspectedY < 62 ? inspectedY + 12 : inspectedY - 54;
+  const xCalloutX = inspectedX === null ? 0 : Math.max(PADDING.left, Math.min(WIDTH - PADDING.right - 76, inspectedX - 38));
 
   return (
     <article className="metric-chart-card">
@@ -81,10 +88,24 @@ function MetricChart({ series, points, start, end, gapThresholdMs, inspectedPoin
             <path d={path} fill="none" stroke={series.color} strokeWidth="3" strokeDasharray={series.dash} vectorEffect="non-scaling-stroke" />
           )}
           {inspectedPoint && (
-            <line x1={x(inspectedPoint.timestamp)} x2={x(inspectedPoint.timestamp)} y1={PADDING.top} y2={HEIGHT - PADDING.bottom} className="trend-inspection-line" />
+            <line x1={inspectedX} x2={inspectedX} y1={PADDING.top} y2={HEIGHT - PADDING.bottom} className="trend-inspection-line" />
           )}
-          {inspectedPoint && Number.isFinite(inspectedPoint[series.key]) && (
-            <circle cx={x(inspectedPoint.timestamp)} cy={y(inspectedPoint[series.key])} r="5" fill={series.color} stroke="white" strokeWidth="2" />
+          {hasInspectedValue && (
+            <>
+              <line x1={PADDING.left} x2={WIDTH - PADDING.right} y1={inspectedY} y2={inspectedY} className="trend-inspection-line trend-inspection-line-horizontal" />
+              <circle cx={inspectedX} cy={inspectedY} r="5" fill={series.color} stroke="white" strokeWidth="2" />
+              <g className="chart-axis-callout">
+                <rect x="2" y={inspectedY - 10} width="50" height="20" rx="4" fill={series.color} />
+                <text x="27" y={inspectedY + 4} textAnchor="middle">{inspectedValue.toFixed(1)}</text>
+                <rect x={xCalloutX} y={HEIGHT - PADDING.bottom + 3} width="76" height="21" rx="4" fill={series.color} />
+                <text x={xCalloutX + 38} y={HEIGHT - PADDING.bottom + 17} textAnchor="middle">{formatOccurrenceTime(inspectedPoint.timestamp)}</text>
+              </g>
+              <g className="chart-point-tooltip" pointerEvents="none">
+                <rect x={tooltipX} y={tooltipY} width="138" height="43" rx="6" />
+                <text x={tooltipX + 9} y={tooltipY + 17}>{series.label}</text>
+                <text x={tooltipX + 9} y={tooltipY + 34}>{inspectedValue.toFixed(1)} {series.unit}</text>
+              </g>
+            </>
           )}
         </svg>
       </div>

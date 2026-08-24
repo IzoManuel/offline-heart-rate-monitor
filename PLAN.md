@@ -111,6 +111,20 @@
    - Remove Choose Lines controls now that every metric has its own separate graph.
    - Keep all four raw-value lines and inspection markers permanently visible.
    - Remove selector-only component state and styling, update documentation, rebuild, deploy, and verify live.
+22. Add in-chart point tooltips and axis callouts.
+   - Follow CDC line-chart interaction conventions by showing the selected point, vertical and horizontal hover guides, and exact values directly in the chart.
+   - Use nearest-X selection so the entire plotting area can select the closest time sample without requiring pixel-perfect contact with the line.
+   - Show a compact tooltip beside the point with metric name, raw value, and unit.
+   - Highlight the selected raw value on the Y-axis and selected time on the X-axis.
+   - Keep tooltip placement inside the SVG near chart edges and support hover, tap, and the existing keyboard navigation.
+   - Retain the below-chart live region as an accessible textual alternative rather than making hover the only way to obtain values.
+   - Add plan documentation, mobile/build/PWA verification, deploy, and verify live.
+
+### In-chart tooltip research decision
+
+- CDC COVE supports hover-only data-point symbols plus vertical and horizontal hover lines for line charts, and its health dashboards expose exact values through tooltips.
+- Nearest-X selection is preferable for time-series charts because it avoids dead zones between sparse or small point marks.
+- Hover cannot be the sole access path: touch, keyboard focus, and a textual live-region readout remain available.
 
 ### Raw-axis research correction
 
@@ -229,3 +243,9 @@
 - [x] All four separate graph lines remain permanently visible
 - [x] Checkbox-removal production gates pass
 - [x] Checkbox-removal update deployed and verified live
+- [x] Nearest-point tooltip rendered beside each selected graph point
+- [x] Raw Y-axis value and X-axis time callouts implemented
+- [x] Horizontal and vertical inspection guides implemented
+- [x] Hover, tap, keyboard, and textual readout remain synchronized
+- [x] Tooltip mobile and production gates pass
+- [ ] In-chart tooltip update deployed and verified live
