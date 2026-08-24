@@ -42,6 +42,15 @@
    - Add RMSSD minimum/maximum values and times inside the existing summary RMSSD card.
    - Track BRPM minimum/maximum values across valid estimates and add their times inside the existing detailed and summary BRPM cards.
    - Preserve the current number of detailed and summary cards and verify the denser cards on mobile.
+13. Persist the latest session across page reloads.
+   - Use a small, versioned React/browser-storage snapshot rather than adding a Vue-only state library such as Pinia.
+   - Persist only the latest session summary: last BPM, BPM statistics/count, HRV/BRPM results, extrema, session start, and save time.
+   - Do not persist Bluetooth device handles or pretend a restored session is still connected.
+   - Restore saved values into both the compact summary and detailed metric views after reload.
+   - Label restored values as a saved session with the save time.
+   - Provide an explicit Clear Saved Data control.
+   - Start a clean live metric session on each new Bluetooth connection while retaining privacy-local storage only.
+   - Validate malformed/version-mismatched storage safely and test save/load/clear behavior.
 
 ### Respiratory-analysis brainstorm
 
@@ -93,3 +102,11 @@
 - [x] No additional metric cards introduced
 - [x] Denser cards reviewed on mobile
 - [x] Timestamped-extrema update deployed and verified live
+- [x] Versioned session snapshot storage implemented and tested
+- [x] BPM, HRV, BRPM, extrema, counts, and timestamps persist locally
+- [x] Saved summary and detailed views restore after reload
+- [x] Restored data is clearly marked non-live
+- [x] Clear Saved Data control implemented
+- [x] New Bluetooth connection starts clean live metrics
+- [x] Mobile reload/restoration review and production gates pass
+- [ ] Persistence update deployed and verified live

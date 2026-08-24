@@ -23,6 +23,12 @@ import {
   timestampReading
 } from '../utils/rollingAnalysis';
 import { calculateHeartRateStats, updateExtrema } from '../utils/sessionExtrema';
+import {
+  clearSessionSnapshot,
+  createSessionSnapshot,
+  loadSessionSnapshot,
+  saveSessionSnapshot
+} from '../utils/sessionStorage';
 
 function HRMonitor() {
   const [isConnected, setIsConnected] = useState(false);
@@ -36,6 +42,8 @@ function HRMonitor() {
   const [error, setError] = useState('');
   const [server, setServer] = useState(null);
   const [characteristic, setCharacteristic] = useState(null);
+  const [sessionStartedAt, setSessionStartedAt] = useState(null);
+  const [savedSession, setSavedSession] = useState(() => loadSessionSnapshot());
   const isPlaybackMode = useRef(false);
 
   // Rolling HRV and breathing-rate analysis state
@@ -78,6 +86,10 @@ function HRMonitor() {
         setIsConnected(true);
         setCurrentHR(0);
         setHeartRateReadings([]);
+        setSessionStartedAt(Date.now());
+        setHRVResults(null);
+        setRMSSDExtrema(null);
+        setBRPMExtrema(null);
         setHRVReadings([]);
         setError('');
       },
@@ -153,6 +165,12 @@ function HRMonitor() {
     try {
       // Connect to device
       const gattServer = await connectToHeartRateMonitor();
+      setCurrentHR(0);
+      setHeartRateReadings([]);
+      setSessionStartedAt(Date.now());
+      setHRVResults(null);
+      setRMSSDExtrema(null);
+      setBRPMExtrema(null);
       setServer(gattServer);
       const deviceNameStr = gattServer.device.name || 'Unknown Device';
       setDeviceName(deviceNameStr);
@@ -303,6 +321,46 @@ function HRMonitor() {
     };
   }, [isConnected, analysisStartedAt, hrvClock, hrvReadings]);
 
+  useEffect(() => {
+    if (!isConnected || !sessionStartedAt || heartRateReadings.length === 0) return;
+
+    const snapshot = createSessionSnapshot({
+      sessionStartedAt,
+      currentHR,
+      stats,
+      readingsCount: heartRateReadings.length,
+      analysisResults: hrvResults,
+      rmssdExtrema,
+      brpmExtrema
+    });
+    saveSessionSnapshot(snapshot);
+    setSavedSession(snapshot);
+  }, [
+    isConnected,
+    sessionStartedAt,
+    currentHR,
+    stats,
+    heartRateReadings.length,
+    hrvResults,
+    rmssdExtrema,
+    brpmExtrema
+  ]);
+
+  const handleClearSavedData = () => {
+    clearSessionSnapshot();
+    setSavedSession(null);
+  };
+
+  const displayedCurrentHR = isConnected ? currentHR : savedSession?.currentHR ?? 0;
+  const displayedStats = isConnected ? stats : savedSession?.stats;
+  const displayedReadingsCount = isConnected
+    ? heartRateReadings.length
+    : savedSession?.readingsCount ?? 0;
+  const displayedResults = isConnected ? hrvResults : savedSession?.analysisResults;
+  const displayedRMSSDExtrema = isConnected ? rmssdExtrema : savedSession?.rmssdExtrema;
+  const displayedBRPMExtrema = isConnected ? brpmExtrema : savedSession?.brpmExtrema;
+  const hasDisplayedData = isConnected || Boolean(savedSession);
+
   return (
     <div className="hr-monitor">
       <header className="header">
@@ -317,11 +375,13 @@ function HRMonitor() {
           batteryLevel={batteryLevel}
           deviceInfo={deviceInfo}
           sensorLocation={sensorLocation}
-          currentHR={currentHR}
-          analysisResults={hrvResults}
-          heartRateStats={stats}
-          rmssdExtrema={rmssdExtrema}
-          brpmExtrema={brpmExtrema}
+          currentHR={displayedCurrentHR}
+          analysisResults={displayedResults}
+          heartRateStats={displayedStats}
+          rmssdExtrema={displayedRMSSDExtrema}
+          brpmExtrema={displayedBRPMExtrema}
+          savedSession={isConnected ? null : savedSession}
+          onClearSavedData={handleClearSavedData}
           onConnect={handleConnect}
           onDisconnect={handleDisconnect}
         />
@@ -332,25 +392,25 @@ function HRMonitor() {
           </div>
         )}
 
-        {isConnected && (
+        {hasDisplayedData && (
           <>
-            <HRDisplay currentHR={currentHR} />
-            <Stats stats={stats} readingsCount={heartRateReadings.length} />
+            <HRDisplay currentHR={displayedCurrentHR} />
+            <Stats stats={displayedStats} readingsCount={displayedReadingsCount} />
             <HRVAnalysis
               isConnected={isConnected}
               analysisState={analysisState}
-              results={hrvResults}
-              rmssdExtrema={rmssdExtrema}
+              results={displayedResults}
+              rmssdExtrema={displayedRMSSDExtrema}
             />
             <RespiratoryAnalysis
-              results={hrvResults}
-              rrCount={analysisState.rrCount}
-              brpmExtrema={brpmExtrema}
+              results={displayedResults}
+              rrCount={isConnected ? analysisState.rrCount : 0}
+              brpmExtrema={displayedBRPMExtrema}
             />
           </>
         )}
 
-        {!isConnected && !error && (
+        {!isConnected && !error && !savedSession && (
           <div className="info-message">
             <p>Make sure your heart rate monitor is turned on and in pairing mode</p>
             <p>This app requires a browser with Web Bluetooth support (Chrome or Edge)</p>

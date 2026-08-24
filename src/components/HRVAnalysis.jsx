@@ -22,8 +22,8 @@ function HRVAnalysis({
   results,
   rmssdExtrema
 }) {
-  // Don't show if not connected
-  if (!isConnected) return null;
+  // Keep the latest completed analysis visible when it has been restored locally.
+  if (!isConnected && !results) return null;
 
   /**
    * Format milliseconds to MM:SS display

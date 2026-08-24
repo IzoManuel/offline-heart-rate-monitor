@@ -4,7 +4,9 @@ An installable Android application for monitoring a Bluetooth Low Energy heart-r
 
 The app fills an initial two-minute RR window after connection, then recalculates RMSSD, SDNN, and estimated breathing rate every five seconds from the latest rolling two minutes of data.
 
-During each connection session, the existing Heart Rate, RMSSD, and BRPM cards retain their minimum and maximum values together with the local time each extreme first occurred. No history is uploaded or retained after disconnection.
+During each connection session, the existing Heart Rate, RMSSD, and BRPM cards retain their minimum and maximum values together with the local time each extreme first occurred. The latest session summary is saved only in the browser so it survives a reload; it is never uploaded.
+
+After a reload, the app labels restored measurements as a **Saved Session** because browsers do not preserve an active Bluetooth connection. Use **Clear Saved Data** to remove the snapshot, or connect the monitor again to start a clean live session. Only the latest summary and analysis results are retained—not the raw RR or heart-rate reading stream.
 
 This project is based on [guyru/web-hr-monitor](https://github.com/guyru/web-hr-monitor) and retains its MIT license.
 
