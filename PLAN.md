@@ -248,4 +248,4 @@
 - [x] Horizontal and vertical inspection guides implemented
 - [x] Hover, tap, keyboard, and textual readout remain synchronized
 - [x] Tooltip mobile and production gates pass
-- [ ] In-chart tooltip update deployed and verified live
+- [x] In-chart tooltip update deployed and verified live
