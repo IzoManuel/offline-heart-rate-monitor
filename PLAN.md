@@ -109,4 +109,4 @@
 - [x] Clear Saved Data control implemented
 - [x] New Bluetooth connection starts clean live metrics
 - [x] Mobile reload/restoration review and production gates pass
-- [ ] Persistence update deployed and verified live
+- [x] Persistence update deployed and verified live
