@@ -194,4 +194,4 @@
 - [x] Calendar Week, Month, and Year granularity implemented
 - [x] Calendar boundary aggregation tests pass
 - [x] Calendar granularity production gates pass
-- [ ] Calendar granularity update deployed and verified live
+- [x] Calendar granularity update deployed and verified live
