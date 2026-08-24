@@ -92,4 +92,4 @@
 - [x] Existing detailed and summary BRPM cards include extrema and times
 - [x] No additional metric cards introduced
 - [x] Denser cards reviewed on mobile
-- [ ] Timestamped-extrema update deployed and verified live
+- [x] Timestamped-extrema update deployed and verified live
