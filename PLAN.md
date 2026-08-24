@@ -20,6 +20,19 @@
    - Expand the connected-device dropdown into an at-a-glance summary of BPM, HRV, and respiratory information.
    - Rework the mobile dropdown layout so it cannot overlap the Disconnect control.
    - Add deterministic calculation tests, responsive review, PWA verification, and live deployment checks.
+10. Replace fixed two-minute result batches with a rolling analysis refreshed every five seconds.
+   - Maintain one rolling two-minute RR-data window rather than starting 20+ overlapping tests.
+   - Recompute HRV and estimated breathing rate every five seconds from the same bounded window.
+   - Publish the first valid metrics after the initial two-minute window fills, then refresh them every five seconds.
+   - Keep memory bounded by pruning readings older than two minutes.
+   - Show rolling-window collection status when there is not yet enough data for valid metrics.
+11. Simplify and normalize the interface copy.
+   - Remove “Keep the sensor connected and remain still.”
+   - Remove resting-range interpretations such as “Below the typical adult resting range.”
+   - Remove the long movement/medical-disclaimer paragraph from the results view.
+   - Use title case for visible labels unless the label is an acronym such as BPM, HRV, RR, RMSSD, SDNN, or BRPM.
+   - Rename the compact “Resting Respiration” card to “BRPM”; do not describe live exercise data as resting.
+   - Review the mobile connected summary again after the copy and timing changes.
 
 ### Respiratory-analysis brainstorm
 
@@ -53,3 +66,11 @@
 - [x] Summary dropdown shows current BPM, latest HRV, and respiratory estimate
 - [x] Mobile dropdown and Disconnect control no longer overlap
 - [x] Updated production PWA built, deployed, and verified live
+- [x] Rolling two-minute RR window implemented without overlapping tests
+- [x] HRV and BRPM results refresh every five seconds
+- [x] Rolling window is pruned and waits for sufficient data safely
+- [x] Requested explanatory text removed from the UI
+- [x] Visible metric labels use title case except acronyms
+- [x] Summary respiratory card renamed to BRPM
+- [x] Updated rolling analysis tests and mobile visual review pass
+- [ ] Rolling-analysis update deployed and verified live

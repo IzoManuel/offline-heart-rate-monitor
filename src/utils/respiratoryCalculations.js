@@ -67,12 +67,6 @@ function lombScarglePower(times, values, frequency) {
   );
 }
 
-function describeRestingRate(rate) {
-  if (rate < 12) return 'Below the typical adult resting range';
-  if (rate <= 20) return 'Within the typical adult resting range';
-  return 'Above the typical adult resting range';
-}
-
 /**
  * Estimate breathing rate from respiratory modulation in an RR tachogram.
  * This is an indirect wellness estimate, not a directly measured vital sign.
@@ -148,7 +142,6 @@ export function estimateRespiratoryRate(readings) {
     peakRatio,
     rrCount: rrIntervals.length,
     durationSeconds: elapsedSeconds,
-    interpretation: describeRestingRate(breathsPerMinute),
     method: 'RR-derived respiratory sinus arrhythmia (Lomb–Scargle spectrum)'
   };
 }

@@ -22,7 +22,7 @@ function Stats({ stats, readingsCount }) {
         <div className="stat-card">
           <div className="stat-label">Readings</div>
           <div className="stat-value">{readingsCount}</div>
-          <div className="stat-unit">samples</div>
+          <div className="stat-unit">Samples</div>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 An installable Android application for monitoring a Bluetooth Low Energy heart-rate sensor. It is built as a Progressive Web App (PWA), so after the first online installation its interface loads without Wi-Fi or mobile data. Heart-rate measurements travel directly between the sensor and the phone over Bluetooth.
 
-HRV analysis runs automatically in continuous two-minute windows after connection. At the end of each window, the latest RMSSD, SDNN, and estimated average resting respiration rate (BRPM) remain on screen while the next two-minute window begins immediately.
+The app fills an initial two-minute RR window after connection, then recalculates RMSSD, SDNN, and estimated breathing rate every five seconds from the latest rolling two minutes of data.
 
 This project is based on [guyru/web-hr-monitor](https://github.com/guyru/web-hr-monitor) and retains its MIT license.
 
@@ -35,9 +35,9 @@ After installing, close the app completely, enable airplane mode, turn Bluetooth
 
 ## Respiratory estimate
 
-The HRM 200 does not send a direct breath measurement through the standard Bluetooth Heart Rate Service. It sends heart rate and RR intervals; this app estimates a two-minute average resting respiration rate from breathing-related modulation of those intervals, called respiratory sinus arrhythmia.
+The HRM 200 does not send a direct breath measurement through the standard Bluetooth Heart Rate Service. It sends heart rate and RR intervals; this app estimates breathing rate from breathing-related modulation of the latest two minutes of those intervals, called respiratory sinus arrhythmia.
 
-For each completed window, the app:
+For each rolling refresh, the app:
 
 1. Converts Bluetooth RR ticks (1/1024 second) to milliseconds and rejects physiologically implausible intervals.
 2. Builds the irregularly timed RR tachogram and removes its linear trend.
@@ -45,7 +45,7 @@ For each completed window, the app:
 4. Reports the estimate only when the spectral peak is sufficiently distinct from background power.
 5. Labels signal quality and withholds ambiguous, short, flat, or missing data rather than inventing a number.
 
-The detailed section compares the result with the commonly cited adult resting range of 12–20 BRPM. This is a wellness estimate, not a direct respiratory measurement or medical diagnosis. Stay still during collection; movement, irregular heart rhythms, medication, artifacts, and weak respiratory sinus arrhythmia can make an estimate unavailable or inaccurate.
+The result is an indirect estimate rather than a breath measurement. Motion and signal quality can affect whether an estimate is available.
 
 Research and protocol references:
 

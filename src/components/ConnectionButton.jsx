@@ -59,7 +59,7 @@ function ConnectionButton({
             aria-expanded={isExpanded}
             aria-controls="connection-summary"
           >
-            <span>{isExpanded ? 'Hide summary' : 'Show summary'}</span>
+            <span>{isExpanded ? 'Hide Summary' : 'Show Summary'}</span>
             <span aria-hidden="true">{isExpanded ? '▲' : '▼'}</span>
           </button>
 
@@ -67,7 +67,7 @@ function ConnectionButton({
             <div className="device-info-extended" id="connection-summary">
               <div className="connection-summary-grid">
                 <div className="connection-summary-item">
-                  <span>Heart rate</span>
+                  <span>Heart Rate</span>
                   <strong>{currentHR || '—'} <small>BPM</small></strong>
                 </div>
                 <div className="connection-summary-item">
@@ -83,7 +83,7 @@ function ConnectionButton({
                   </strong>
                 </div>
                 <div className="connection-summary-item">
-                  <span>Resting respiration</span>
+                  <span>BRPM</span>
                   <strong>
                     {analysisResults?.respiration?.available
                       ? analysisResults.respiration.breathsPerMinute.toFixed(1)
@@ -94,7 +94,7 @@ function ConnectionButton({
 
               {analysisResults && (
                 <p className="connection-summary-caption">
-                  Latest completed analysis: cycle {analysisResults.cycleNumber}
+                  Updated {new Date(analysisResults.analyzedAt).toLocaleTimeString()}
                 </p>
               )}
 

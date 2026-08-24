@@ -4,14 +4,10 @@ import React from 'react';
  * HRVAnalysis Component
  *
  * Displays HRV (Heart Rate Variability) analysis interface
- * Continuously displays collection progress and the latest completed results.
+ * Displays rolling-window collection progress and the latest five-second refresh.
  *
  * @param {boolean} isConnected - Whether a device is connected
- * @param {Object} testState - Current test state
- * @param {boolean} testState.isRunning - Whether test is in progress
- * @param {number} testState.duration - Total test duration in ms
- * @param {number} testState.elapsed - Elapsed time in ms
- * @param {number} testState.rrCount - Number of RR intervals collected
+ * @param {Object} analysisState - Current rolling analysis state
  * @param {Object} results - Test results (null if no results)
  * @param {number} results.rmssd - RMSSD value in ms
  * @param {number} results.sdnn - SDNN value in ms
@@ -21,7 +17,7 @@ import React from 'react';
  */
 function HRVAnalysis({
   isConnected,
-  testState,
+  analysisState,
   results
 }) {
   // Don't show if not connected
@@ -41,50 +37,35 @@ function HRVAnalysis({
     <div className="hrv-section">
       <h2>HRV Analysis</h2>
 
-      {/* The next collection window remains visible while prior results are shown. */}
-      {testState.isRunning && (
+      {analysisState.isRunning && (
         <div className="hrv-testing">
-          <p className="hrv-status">
-            Cycle {testState.cycleNumber}: collecting RR intervals automatically...
-          </p>
+          <p className="hrv-status">Rolling 2-Minute Window</p>
 
           <div className="hrv-progress-container">
             <div className="hrv-progress-bar">
               <div
                 className="hrv-progress-fill"
-              style={{ width: `${Math.min(100, (testState.elapsed / testState.duration) * 100)}%` }}
+              style={{ width: `${Math.min(100, (analysisState.elapsed / analysisState.duration) * 100)}%` }}
               />
             </div>
             <p className="hrv-countdown">
-              {formatTime(testState.duration - testState.elapsed)}
+              {formatTime(analysisState.elapsed)} / {formatTime(analysisState.duration)}
             </p>
           </div>
 
           <div className="hrv-rr-count">
-            <span className="hrv-label">RR intervals:</span>
-            <span className="hrv-value">{testState.rrCount}</span>
+            <span className="hrv-label">RR Intervals:</span>
+            <span className="hrv-value">{analysisState.rrCount}</span>
           </div>
-
-          <p className="hrv-note">
-            Results update every 2 minutes. Keep the sensor connected and remain still.
-          </p>
         </div>
       )}
 
-      {/* Results State - Test completed */}
-      {results && (
+      {results && !results.error && (
         <div className="hrv-results">
-          <h3>Latest Results — Cycle {results.cycleNumber}</h3>
+          <h3>Latest Results</h3>
           <p className="hrv-note">
-            Completed {new Date(results.completedAt).toLocaleTimeString()}; displayed while the next cycle runs.
+            Updated {new Date(results.analyzedAt).toLocaleTimeString()}
           </p>
-
-          {/* Error message */}
-          {results.error && (
-            <div className="hrv-error">
-              ❌ {results.error}
-            </div>
-          )}
 
           {/* Warning message for suspicious RR intervals */}
           {results.warning && !results.error && (
@@ -94,14 +75,13 @@ function HRVAnalysis({
           )}
 
           {/* HRV Metrics */}
-          {!results.error && (
-            <div className="hrv-metrics-grid">
+          <div className="hrv-metrics-grid">
               <div className="hrv-metric">
                 <span className="hrv-metric-label">RMSSD</span>
                 <span className="hrv-metric-value">
                   {results.rmssd.toFixed(1)} <span className="hrv-unit">ms</span>
                 </span>
-                <span className="hrv-metric-description">Short-term variability</span>
+                <span className="hrv-metric-description">Short-Term Variability</span>
               </div>
 
               <div className="hrv-metric">
@@ -109,7 +89,7 @@ function HRVAnalysis({
                 <span className="hrv-metric-value">
                   {results.sdnn.toFixed(1)} <span className="hrv-unit">ms</span>
                 </span>
-                <span className="hrv-metric-description">Overall variability</span>
+                <span className="hrv-metric-description">Overall Variability</span>
               </div>
 
               <div className="hrv-metric">
@@ -117,10 +97,9 @@ function HRVAnalysis({
                 <span className="hrv-metric-value">
                   {results.rrCount}
                 </span>
-                <span className="hrv-metric-description">Data points analyzed</span>
+                <span className="hrv-metric-description">Data Points Analyzed</span>
               </div>
-            </div>
-          )}
+          </div>
         </div>
       )}
     </div>

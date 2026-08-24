@@ -14,7 +14,14 @@ import {
   readBodySensorLocation
 } from '../utils/bluetooth';
 import debugRecorder from '../utils/debugBluetooth';
-import { completeHRVCycle, HRV_CYCLE_DURATION } from '../utils/hrvCycle';
+import {
+  ANALYSIS_REFRESH_INTERVAL,
+  ANALYSIS_WINDOW_DURATION,
+  analyzeRollingWindow,
+  isRollingWindowReady,
+  pruneRollingReadings,
+  timestampReading
+} from '../utils/rollingAnalysis';
 
 function HRMonitor() {
   const [isConnected, setIsConnected] = useState(false);
@@ -30,13 +37,27 @@ function HRMonitor() {
   const [characteristic, setCharacteristic] = useState(null);
   const isPlaybackMode = useRef(false);
 
-  // HRV test state
-  const [hrvTestStart, setHRVTestStart] = useState(null);
+  // Rolling HRV and breathing-rate analysis state
+  const [analysisStartedAt, setAnalysisStartedAt] = useState(null);
   const [hrvClock, setHRVClock] = useState(Date.now());
-  const [hrvCycleNumber, setHRVCycleNumber] = useState(1);
   const [hrvReadings, setHRVReadings] = useState([]);
   const [hrvResults, setHRVResults] = useState(null);
   const hrvReadingsRef = useRef([]);
+  const lastAnalysisAtRef = useRef(null);
+
+  const collectRRReading = (data) => {
+    if (!data.rrIntervals?.length) return;
+
+    const now = Date.now();
+    setHRVReadings(previous => {
+      const retained = pruneRollingReadings(
+        [...previous, timestampReading(data, now)],
+        now
+      );
+      hrvReadingsRef.current = retained;
+      return retained;
+    });
+  };
 
   // Calculate statistics
   const stats = React.useMemo(() => {
@@ -76,14 +97,7 @@ function HRMonitor() {
         setCurrentHR(data.heartRate);
         setHeartRateReadings(prev => [...prev, data.heartRate]);
 
-        // Collect RR intervals for the current automatic HRV cycle.
-        if (data.rrIntervals && data.rrIntervals.length > 0) {
-          setHRVReadings(prev => {
-            const newReadings = [...prev, data];
-            hrvReadingsRef.current = newReadings; // Keep ref in sync
-            return newReadings;
-          });
-        }
+        collectRRReading(data);
       },
       onComplete: () => {
         // Playback end callback
@@ -173,14 +187,7 @@ function HRMonitor() {
         setCurrentHR(data.heartRate);
         setHeartRateReadings(prev => [...prev, data.heartRate]);
 
-        // Collect RR intervals for the current automatic HRV cycle.
-        if (data.rrIntervals && data.rrIntervals.length > 0) {
-          setHRVReadings(prev => {
-            const newReadings = [...prev, data];
-            hrvReadingsRef.current = newReadings; // Keep ref in sync
-            return newReadings;
-          });
-        }
+        collectRRReading(data);
       });
 
       setCharacteristic(char);
@@ -230,64 +237,63 @@ function HRMonitor() {
     }
   };
 
-  // Start a fresh automatic HRV session whenever a device connects.
+  // Start a fresh rolling analysis session whenever a device connects.
   useEffect(() => {
     if (!isConnected) {
-      setHRVTestStart(null);
+      setAnalysisStartedAt(null);
       setHRVReadings([]);
       hrvReadingsRef.current = [];
+      lastAnalysisAtRef.current = null;
       return;
     }
 
     const startedAt = Date.now();
-    setHRVTestStart(startedAt);
+    setAnalysisStartedAt(startedAt);
     setHRVClock(startedAt);
-    setHRVCycleNumber(1);
     setHRVReadings([]);
     hrvReadingsRef.current = [];
     setHRVResults(null);
+    lastAnalysisAtRef.current = startedAt;
   }, [isConnected]);
 
-  // Complete the current window every two minutes and immediately start another.
+  // Recompute one bounded two-minute rolling window every five seconds.
   useEffect(() => {
-    if (!isConnected || hrvTestStart === null) return;
+    if (!isConnected || analysisStartedAt === null) return;
 
     const timer = setInterval(() => {
       const now = Date.now();
       setHRVClock(now);
 
-      if (now - hrvTestStart < HRV_CYCLE_DURATION) return;
+      if (!isRollingWindowReady(analysisStartedAt, now)) return;
+      if (now - lastAnalysisAtRef.current < ANALYSIS_REFRESH_INTERVAL) return;
 
-      const transition = completeHRVCycle(hrvReadingsRef.current, hrvCycleNumber, now);
-      setHRVResults(transition.results);
-
-      // Reset only the active collection window; the published results stay visible.
-      setHRVReadings([]);
-      hrvReadingsRef.current = [];
-      setHRVCycleNumber(transition.nextCycle.cycleNumber);
-      setHRVTestStart(transition.nextCycle.startedAt);
+      const retained = pruneRollingReadings(hrvReadingsRef.current, now);
+      hrvReadingsRef.current = retained;
+      setHRVReadings(retained);
+      setHRVResults(analyzeRollingWindow(retained, now));
+      lastAnalysisAtRef.current = now;
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isConnected, hrvTestStart, hrvCycleNumber]);
+  }, [isConnected, analysisStartedAt]);
 
-  // Calculate HRV test state for component
-  const hrvTestState = useMemo(() => {
-    if (!isConnected || hrvTestStart === null) {
-      return { isRunning: false, duration: 0, elapsed: 0, rrCount: 0 };
+  const analysisState = useMemo(() => {
+    if (!isConnected || analysisStartedAt === null) {
+      return { isRunning: false, duration: 0, elapsed: 0, rrCount: 0, nextRefreshIn: 0 };
     }
 
-    const elapsed = Math.min(hrvClock - hrvTestStart, HRV_CYCLE_DURATION);
+    const elapsed = Math.min(hrvClock - analysisStartedAt, ANALYSIS_WINDOW_DURATION);
     const rrCount = hrvReadings.flatMap(r => r.rrIntervals || []).length;
+    const sinceLastAnalysis = hrvClock - (lastAnalysisAtRef.current ?? analysisStartedAt);
 
     return {
       isRunning: true,
-      duration: HRV_CYCLE_DURATION,
+      duration: ANALYSIS_WINDOW_DURATION,
       elapsed,
       rrCount,
-      cycleNumber: hrvCycleNumber
+      nextRefreshIn: Math.max(0, ANALYSIS_REFRESH_INTERVAL - sinceLastAnalysis)
     };
-  }, [isConnected, hrvTestStart, hrvClock, hrvReadings, hrvCycleNumber]);
+  }, [isConnected, analysisStartedAt, hrvClock, hrvReadings]);
 
   return (
     <div className="hr-monitor">
@@ -321,12 +327,12 @@ function HRMonitor() {
             <Stats stats={stats} readingsCount={heartRateReadings.length} />
             <HRVAnalysis
               isConnected={isConnected}
-              testState={hrvTestState}
+              analysisState={analysisState}
               results={hrvResults}
             />
             <RespiratoryAnalysis
               results={hrvResults}
-              cycleNumber={hrvCycleNumber}
+              rrCount={analysisState.rrCount}
             />
           </>
         )}

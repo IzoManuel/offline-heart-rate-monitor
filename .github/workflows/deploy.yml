@@ -41,7 +41,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Test continuous HRV cycle
+      - name: Test rolling analysis
         run: npm test
 
       - name: Verify offline PWA
