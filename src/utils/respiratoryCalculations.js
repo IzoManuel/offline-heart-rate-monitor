@@ -1,9 +1,9 @@
-import { filterOutliers } from './hrvCalculations.js';
-
 const MIN_INTERVALS = 60;
 const MIN_DURATION_SECONDS = 60;
 const MIN_FREQUENCY_HZ = 0.1;
-const MAX_FREQUENCY_HZ = 0.5;
+// Incremental-running RR studies observed breathing up to about 70 BRPM and
+// used 0.2-1.2 Hz. Keep slow breathing support, with an adaptive sampling cap.
+const MAX_FREQUENCY_HZ = 1.2;
 // A conservative floor helps avoid reporting the strongest peak in random noise.
 const MIN_PEAK_RATIO = 8;
 
@@ -13,6 +13,15 @@ function median(values) {
   return sorted.length % 2
     ? sorted[middle]
     : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+export function filterRespiratoryIntervals(intervals) {
+  const bounded = intervals.filter(value => Number.isFinite(value) && value >= 300 && value <= 2000);
+  return bounded.filter((value, index) => {
+    const local = bounded.slice(Math.max(0, index - 3), index + 4);
+    const localMedian = median(local);
+    return Math.abs(value - localMedian) / localMedian <= 0.20;
+  });
 }
 
 function detrend(values, times) {
@@ -72,7 +81,7 @@ function lombScarglePower(times, values, frequency) {
  * This is an indirect wellness estimate, not a directly measured vital sign.
  */
 export function estimateRespiratoryRate(readings) {
-  const rrIntervals = filterOutliers(readings.flatMap(reading => reading.rrIntervals || []));
+  const rrIntervals = filterRespiratoryIntervals(readings.flatMap(reading => reading.rrIntervals || []));
 
   if (rrIntervals.length < MIN_INTERVALS) {
     return {
@@ -105,8 +114,13 @@ export function estimateRespiratoryRate(readings) {
   }
 
   const frequencyStep = 1 / (elapsedSeconds * 4);
+  const averageSamplingHz = 1000 / (rrIntervals.reduce((sum, value) => sum + value, 0) / rrIntervals.length);
+  const maximumFrequencyHz = Math.min(MAX_FREQUENCY_HZ, averageSamplingHz * 0.45);
+  if (maximumFrequencyHz <= MIN_FREQUENCY_HZ + frequencyStep * 2) {
+    return { available: false, error: 'Heart beats are too sparse to resolve a respiratory rhythm in this window' };
+  }
   const spectrum = [];
-  for (let frequency = MIN_FREQUENCY_HZ; frequency <= MAX_FREQUENCY_HZ; frequency += frequencyStep) {
+  for (let frequency = MIN_FREQUENCY_HZ; frequency <= maximumFrequencyHz; frequency += frequencyStep) {
     spectrum.push({
       frequency,
       power: lombScarglePower(times, signal, frequency)
@@ -120,7 +134,7 @@ export function estimateRespiratoryRate(readings) {
   const backgroundPower = median(background);
   const peakRatio = backgroundPower > 0 ? peak.power / backgroundPower : 0;
   const atBoundary = peak.frequency <= MIN_FREQUENCY_HZ + frequencyStep ||
-    peak.frequency >= MAX_FREQUENCY_HZ - frequencyStep;
+    peak.frequency >= maximumFrequencyHz - frequencyStep;
 
   if (!Number.isFinite(peakRatio) || peakRatio < MIN_PEAK_RATIO || atBoundary) {
     return {

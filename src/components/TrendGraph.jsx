@@ -6,9 +6,10 @@ import { downloadChartCsv } from '../utils/csvExport';
 import { latestInspectionIndex } from '../utils/chartInteraction';
 
 const SERIES = [
-  { key: 'heartRate', label: 'Heart Rate', unit: 'BPM', color: '#dc2626', dash: '' },
+  { key: 'ddfaAlpha10', label: 'DDFA α10', unit: 'Unitless', color: '#b45309', dash: '' },
   { key: 'rmssd', label: 'RMSSD', unit: 'ms', color: '#2563eb', dash: '10 4' },
   { key: 'sdnn', label: 'SDNN', unit: 'ms', color: '#7c3aed', dash: '3 4' },
+  { key: 'heartRate', label: 'Heart Rate', unit: 'BPM', color: '#dc2626', dash: '' },
   { key: 'brpm', label: 'BRPM', unit: 'BRPM', color: '#059669', dash: '12 4 3 4' }
 ];
 const GRANULARITIES = [

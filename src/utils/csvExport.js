@@ -1,6 +1,6 @@
 import { CHART_METRICS, boundChartPoints } from './chartStorage.js';
 
-export const CSV_COLUMNS = ['Timestamp ISO', 'Local Time', 'Session Started ISO', 'Heart Rate (BPM)', 'RMSSD (ms)', 'SDNN (ms)', 'BRPM', 'Sample Count', 'Heart Rate Sample Count', 'RMSSD Sample Count', 'SDNN Sample Count', 'BRPM Sample Count'];
+export const CSV_COLUMNS = ['Timestamp ISO', 'Local Time', 'Session Started ISO', 'DDFA Alpha10 (unitless)', 'RMSSD (ms)', 'SDNN (ms)', 'Heart Rate (BPM)', 'BRPM', 'Sample Count', 'DDFA Alpha10 Sample Count', 'RMSSD Sample Count', 'SDNN Sample Count', 'Heart Rate Sample Count', 'BRPM Sample Count'];
 
 function csvCell(value) {
   if (value === null || value === undefined || (typeof value === 'number' && !Number.isFinite(value))) return '';

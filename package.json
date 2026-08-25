@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test",
-    "verify:pwa": "node scripts/verify-pwa.mjs"
+    "verify:pwa": "node scripts/verify-pwa.mjs",
+    "verify:seo": "node scripts/verify-seo.mjs"
   },
   "dependencies": {
     "react": "^19.2.0",

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://izomanuel.github.io/offline-heart-rate-monitor/sitemap.xml

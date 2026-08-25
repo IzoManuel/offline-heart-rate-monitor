@@ -4,6 +4,7 @@ import HRDisplay from './HRDisplay';
 import Stats from './Stats';
 import HRVAnalysis from './HRVAnalysis';
 import RespiratoryAnalysis from './RespiratoryAnalysis';
+import DDFAAnalysis from './DDFAAnalysis';
 import TrendGraph from './TrendGraph';
 import {
   connectToHeartRateMonitor,
@@ -61,6 +62,7 @@ function HRMonitor() {
   const [hrvReadings, setHRVReadings] = useState([]);
   const [hrvResults, setHRVResults] = useState(null);
   const [rmssdExtrema, setRMSSDExtrema] = useState(null);
+  const [ddfaExtrema, setDDFAExtrema] = useState(null);
   const [sdnnExtrema, setSDNNExtrema] = useState(null);
   const [brpmExtrema, setBRPMExtrema] = useState(null);
   const [chartPoints, setChartPoints] = useState([]);
@@ -102,6 +104,7 @@ function HRMonitor() {
         setSessionStartedAt(Date.now());
         setHRVResults(null);
         setRMSSDExtrema(null);
+        setDDFAExtrema(null);
         setSDNNExtrema(null);
         setBRPMExtrema(null);
         setHRVReadings([]);
@@ -184,6 +187,7 @@ function HRMonitor() {
       setSessionStartedAt(Date.now());
       setHRVResults(null);
       setRMSSDExtrema(null);
+      setDDFAExtrema(null);
       setSDNNExtrema(null);
       setBRPMExtrema(null);
       setServer(gattServer);
@@ -282,6 +286,7 @@ function HRMonitor() {
     hrvReadingsRef.current = [];
     setHRVResults(null);
     setRMSSDExtrema(null);
+    setDDFAExtrema(null);
     setSDNNExtrema(null);
     setBRPMExtrema(null);
     lastAnalysisAtRef.current = startedAt;
@@ -304,6 +309,9 @@ function HRMonitor() {
       const results = analyzeRollingWindow(retained, now);
       setHRVResults(results);
       if (!results.error) {
+        if (results.ddfa?.available) {
+          setDDFAExtrema(previous => updateExtrema(previous, results.ddfa.alpha10, now));
+        }
         setRMSSDExtrema(previous => updateExtrema(previous, results.rmssd, now));
         setSDNNExtrema(previous => updateExtrema(previous, results.sdnn, now));
       }
@@ -353,6 +361,7 @@ function HRMonitor() {
         sessionStartedAt,
         timestamp: Date.now(),
         heartRate: currentHRRef.current,
+        ddfaAlpha10: results?.ddfa?.available ? results.ddfa.alpha10 : null,
         rmssd: results && !results.error ? results.rmssd : null,
         sdnn: results && !results.error ? results.sdnn : null,
         brpm: results?.respiration?.available
@@ -387,6 +396,7 @@ function HRMonitor() {
       stats,
       readingsCount: heartRateReadings.length,
       analysisResults: hrvResults,
+      ddfaExtrema,
       rmssdExtrema,
       sdnnExtrema,
       brpmExtrema
@@ -400,6 +410,7 @@ function HRMonitor() {
     stats,
     heartRateReadings.length,
     hrvResults,
+    ddfaExtrema,
     rmssdExtrema,
     sdnnExtrema,
     brpmExtrema
@@ -419,6 +430,7 @@ function HRMonitor() {
     : savedSession?.readingsCount ?? 0;
   const displayedResults = isConnected ? hrvResults : savedSession?.analysisResults;
   const displayedRMSSDExtrema = isConnected ? rmssdExtrema : savedSession?.rmssdExtrema;
+  const displayedDDFAExtrema = isConnected ? ddfaExtrema : savedSession?.ddfaExtrema;
   const displayedSDNNExtrema = isConnected ? sdnnExtrema : savedSession?.sdnnExtrema;
   const displayedBRPMExtrema = isConnected ? brpmExtrema : savedSession?.brpmExtrema;
   const hasDisplayedData = isConnected || Boolean(savedSession);
@@ -426,7 +438,7 @@ function HRMonitor() {
   return (
     <div className="hr-monitor">
       <header className="header">
-        <h1>Web HR Monitor</h1>
+        <h1>Offline Heart Rate Monitor</h1>
       </header>
 
       <main className="main-content">
@@ -440,6 +452,7 @@ function HRMonitor() {
           currentHR={displayedCurrentHR}
           analysisResults={displayedResults}
           heartRateStats={displayedStats}
+          ddfaExtrema={displayedDDFAExtrema}
           rmssdExtrema={displayedRMSSDExtrema}
           sdnnExtrema={displayedSDNNExtrema}
           brpmExtrema={displayedBRPMExtrema}
@@ -457,8 +470,7 @@ function HRMonitor() {
 
         {hasDisplayedData && (
           <>
-            <HRDisplay currentHR={displayedCurrentHR} />
-            <Stats stats={displayedStats} readingsCount={displayedReadingsCount} />
+            <DDFAAnalysis results={displayedResults} extrema={displayedDDFAExtrema} />
             <HRVAnalysis
               isConnected={isConnected}
               analysisState={analysisState}
@@ -466,6 +478,8 @@ function HRMonitor() {
               rmssdExtrema={displayedRMSSDExtrema}
               sdnnExtrema={displayedSDNNExtrema}
             />
+            <HRDisplay currentHR={displayedCurrentHR} />
+            <Stats stats={displayedStats} readingsCount={displayedReadingsCount} />
             <RespiratoryAnalysis
               results={displayedResults}
               rrCount={isConnected ? analysisState.rrCount : 0}
@@ -483,6 +497,16 @@ function HRMonitor() {
           </div>
         )}
       </main>
+
+      <aside className="about-app" aria-labelledby="about-app-heading">
+        <h2 id="about-app-heading">Private Offline DDFA And HRV Monitoring</h2>
+        <p>Install this free progressive web app on a compatible Android phone to monitor a Bluetooth Low Energy heart-rate strap after the application shell has been cached. Measurements and retained history stay in this browser unless you export a CSV file.</p>
+        <details>
+          <summary>How The Metrics Work</summary>
+          <p>DDFA α10 is a unitless, ten-beat-scale DDFA-2 correlation exponent. RMSSD and SDNN are HRV measurements in milliseconds. Heart Rate is shown in BPM, while BRPM is an RR-derived breathing-rate estimate rather than a direct respiratory sensor measurement.</p>
+          <p>The rolling two-minute analysis refreshes every five seconds. Results are wellness information, not a medical measurement, diagnosis, or exercise-threshold determination.</p>
+        </details>
+      </aside>
 
       <footer className="footer">
         <p>© 2025. Licensed under MIT.</p>

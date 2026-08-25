@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { estimateRespiratoryRate } from '../src/utils/respiratoryCalculations.js';
+import { estimateRespiratoryRate, filterRespiratoryIntervals } from '../src/utils/respiratoryCalculations.js';
 
-function createRespiratorySignal({ breathsPerMinute, durationSeconds = 120, amplitudeMs = 70 }) {
+function createRespiratorySignal({ breathsPerMinute, durationSeconds = 120, amplitudeMs = 70, baselineMs = 900 }) {
   const readings = [];
   let elapsedSeconds = 0;
 
   while (elapsedSeconds < durationSeconds) {
-    const interval = 900 + amplitudeMs * Math.sin(
+    const interval = baselineMs + amplitudeMs * Math.sin(
       2 * Math.PI * (breathsPerMinute / 60) * elapsedSeconds
     );
     readings.push({
@@ -51,6 +51,24 @@ test('estimates a second rate independently from another two-minute window', () 
 
   assert.equal(result.available, true);
   assert.ok(Math.abs(result.breathsPerMinute - 19) < 0.6);
+});
+
+test('covers high exercise breathing rates rather than clipping at 30 BRPM', () => {
+  const result = estimateRespiratoryRate(createRespiratorySignal({
+    breathsPerMinute: 48,
+    baselineMs: 400,
+    amplitudeMs: 18
+  }));
+  assert.equal(result.available, true);
+  assert.ok(Math.abs(result.breathsPerMinute - 48) < 0.7);
+});
+
+test('local artifact filtering preserves a valid gradual exercise heart-rate trend', () => {
+  const trend = Array.from({ length: 160 }, (_, index) => 900 - index * 2.5);
+  const filtered = filterRespiratoryIntervals(trend);
+  assert.equal(filtered.length, trend.length);
+  assert.equal(filtered[0], 900);
+  assert.equal(filtered.at(-1), 502.5);
 });
 
 test('withholds an estimate when too few RR intervals are supplied', () => {

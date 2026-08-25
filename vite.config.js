@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Offline Heart Rate Monitor',
         short_name: 'HR Monitor',
-        description: 'Monitor a Bluetooth heart-rate sensor without an internet connection.',
+        description: 'Offline Bluetooth heart-rate monitoring with DDFA, RMSSD, SDNN, BRPM trends, local history, and CSV export.',
         theme_color: '#b4233c',
         background_color: '#f8f5f2',
         display: 'standalone',

@@ -579,6 +579,82 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.ddfa-section {
+  border-top-color: #d97706;
+}
+
+.ddfa-headline-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ddfa-headline-card {
+  border-left: 3px solid #d97706;
+}
+
+.ddfa-profile {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  overflow: hidden;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.ddfa-profile h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+}
+
+.ddfa-profile-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(3px, 1vw, 10px);
+  min-height: 118px;
+  overflow-x: auto;
+  padding: var(--spacing-xs) 0;
+}
+
+.ddfa-profile-column {
+  display: flex;
+  flex: 1 0 34px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  min-width: 34px;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ddfa-profile-bar {
+  width: min(22px, 70%);
+  min-height: 4px;
+  background: #d97706;
+  border-radius: 3px 3px 0 0;
+}
+
+.ddfa-profile-value { color: var(--text-primary); font-weight: 600; }
+.ddfa-profile-scale { font-weight: 600; }
+
+.about-app {
+  width: min(100% - 2rem, 880px);
+  margin: var(--spacing-xl) auto;
+  padding: var(--spacing-lg);
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.about-app h2 { margin-bottom: var(--spacing-sm); color: var(--text-primary); font-size: var(--text-lg); }
+.about-app details { margin-top: var(--spacing-sm); }
+.about-app summary { min-height: 44px; color: var(--text-primary); font-weight: 700; cursor: pointer; }
+.about-app p + p { margin-top: var(--spacing-sm); }
+
 /* ==========================================
    Metric Trend Graph
    ========================================== */

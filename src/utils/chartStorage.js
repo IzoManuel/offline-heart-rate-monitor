@@ -1,5 +1,5 @@
 export const CHART_POINT_LIMIT = 10000;
-export const CHART_METRICS = ['heartRate', 'rmssd', 'sdnn', 'brpm'];
+export const CHART_METRICS = ['ddfaAlpha10', 'rmssd', 'sdnn', 'heartRate', 'brpm'];
 
 function metricWeight(point, metric) {
   return Number.isFinite(point[metric]) ? (point[`${metric}Count`] ?? 1) : 0;

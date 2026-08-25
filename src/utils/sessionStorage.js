@@ -7,6 +7,7 @@ export function createSessionSnapshot({
   stats,
   readingsCount,
   analysisResults,
+  ddfaExtrema,
   rmssdExtrema,
   sdnnExtrema,
   brpmExtrema,
@@ -20,6 +21,7 @@ export function createSessionSnapshot({
     stats,
     readingsCount,
     analysisResults,
+    ...(ddfaExtrema === undefined ? {} : { ddfaExtrema }),
     rmssdExtrema,
     sdnnExtrema,
     brpmExtrema

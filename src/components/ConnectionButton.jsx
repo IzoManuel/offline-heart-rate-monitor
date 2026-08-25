@@ -12,6 +12,7 @@ function ConnectionButton({
   currentHR,
   analysisResults,
   heartRateStats,
+  ddfaExtrema,
   rmssdExtrema,
   sdnnExtrema,
   brpmExtrema,
@@ -47,6 +48,7 @@ function ConnectionButton({
       currentHR={currentHR}
       analysisResults={analysisResults}
       heartRateStats={heartRateStats}
+      ddfaExtrema={ddfaExtrema}
       rmssdExtrema={rmssdExtrema}
       sdnnExtrema={sdnnExtrema}
       brpmExtrema={brpmExtrema}

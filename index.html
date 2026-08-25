@@ -3,14 +3,58 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-    <meta name="description" content="An installable offline heart-rate monitor for Bluetooth Low Energy sensors" />
+    <meta name="description" content="Install a private offline Bluetooth heart-rate monitor with DDFA, RMSSD, SDNN, Heart Rate, BRPM trends, saved history, and CSV export." />
     <meta name="theme-color" content="#b4233c" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Offline Heart Rate Monitor" />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Offline Heart Rate Monitor" />
+    <meta property="og:title" content="Offline Bluetooth Heart Rate Monitor With DDFA And HRV" />
+    <meta property="og:description" content="Private, installable heart-rate monitoring with five-second DDFA and HRV analysis, local history, charts, and CSV export." />
+    <meta property="og:url" content="https://izomanuel.github.io/offline-heart-rate-monitor/" />
+    <meta property="og:image" content="https://izomanuel.github.io/offline-heart-rate-monitor/icons/icon-512.png" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="canonical" href="https://izomanuel.github.io/offline-heart-rate-monitor/" />
     <link rel="icon" href="./icons/icon-192.png" />
-    <title>Offline Heart Rate Monitor</title>
+    <title>Offline Bluetooth Heart Rate Monitor With DDFA And HRV</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://izomanuel.github.io/offline-heart-rate-monitor/#website",
+            "url": "https://izomanuel.github.io/offline-heart-rate-monitor/",
+            "name": "Offline Heart Rate Monitor"
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://izomanuel.github.io/offline-heart-rate-monitor/#app",
+            "name": "Offline Heart Rate Monitor",
+            "url": "https://izomanuel.github.io/offline-heart-rate-monitor/",
+            "description": "An installable, privacy-local Bluetooth heart-rate monitor with DDFA, RMSSD, SDNN, Heart Rate, estimated BRPM, trend charts, and CSV export.",
+            "applicationCategory": "HealthApplication",
+            "operatingSystem": "Android, ChromeOS, Windows, macOS, Linux",
+            "browserRequirements": "Requires a Web Bluetooth capable browser for live sensor connection",
+            "isAccessibleForFree": true,
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+            "featureList": [
+              "Offline installable PWA",
+              "Bluetooth heart-rate and RR interval monitoring",
+              "DDFA-2 alpha10 and scale profile",
+              "RMSSD and SDNN heart-rate variability",
+              "Estimated breathing rate in BRPM",
+              "Private local history and CSV export"
+            ]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>This offline Bluetooth heart-rate monitor requires JavaScript to connect to a compatible sensor and calculate DDFA, RMSSD, SDNN, Heart Rate, and estimated BRPM.</noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

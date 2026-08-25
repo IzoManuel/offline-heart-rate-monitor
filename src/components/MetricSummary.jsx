@@ -5,6 +5,7 @@ function MetricSummary({
   currentHR,
   analysisResults,
   heartRateStats,
+  ddfaExtrema,
   rmssdExtrema,
   sdnnExtrema,
   brpmExtrema,
@@ -22,12 +23,12 @@ function MetricSummary({
     <>
       <div className="connection-summary-grid">
         <div className="connection-summary-item">
-          <span>Heart Rate</span>
-          <strong>{currentHR || '—'} <small>BPM</small></strong>
+          <span>DDFA α10</span>
+          <strong>{analysisResults?.ddfa?.available ? analysisResults.ddfa.alpha10.toFixed(2) : '—'} <small>Unitless</small></strong>
           <div className="summary-extrema">
-            <span>Min {heartRateStats?.min || '—'} · {formatOccurrenceTime(heartRateStats?.minAt)}</span>
-            <span>Average {heartRateStats?.average || '—'} BPM</span>
-            <span>Max {heartRateStats?.max || '—'} · {formatOccurrenceTime(heartRateStats?.maxAt)}</span>
+            <span>Min {ddfaExtrema ? ddfaExtrema.min.value.toFixed(2) : '—'} · {formatOccurrenceTime(ddfaExtrema?.min.occurredAt)}</span>
+            <span>Average {Number.isFinite(ddfaExtrema?.average) ? ddfaExtrema.average.toFixed(2) : '—'}</span>
+            <span>Max {ddfaExtrema ? ddfaExtrema.max.value.toFixed(2) : '—'} · {formatOccurrenceTime(ddfaExtrema?.max.occurredAt)}</span>
           </div>
         </div>
         <div className="connection-summary-item">
@@ -50,6 +51,15 @@ function MetricSummary({
             <span>Min {sdnnExtrema ? sdnnExtrema.min.value.toFixed(1) : '—'} · {formatOccurrenceTime(sdnnExtrema?.min.occurredAt)}</span>
             <span>Average {Number.isFinite(sdnnExtrema?.average) ? sdnnExtrema.average.toFixed(1) : '—'} ms</span>
             <span>Max {sdnnExtrema ? sdnnExtrema.max.value.toFixed(1) : '—'} · {formatOccurrenceTime(sdnnExtrema?.max.occurredAt)}</span>
+          </div>
+        </div>
+        <div className="connection-summary-item">
+          <span>Heart Rate</span>
+          <strong>{currentHR || '—'} <small>BPM</small></strong>
+          <div className="summary-extrema">
+            <span>Min {heartRateStats?.min || '—'} · {formatOccurrenceTime(heartRateStats?.minAt)}</span>
+            <span>Average {heartRateStats?.average || '—'} BPM</span>
+            <span>Max {heartRateStats?.max || '—'} · {formatOccurrenceTime(heartRateStats?.maxAt)}</span>
           </div>
         </div>
         <div className="connection-summary-item">

@@ -1,5 +1,6 @@
 import { analyzeHRV } from './hrvCalculations.js';
 import { estimateRespiratoryRate } from './respiratoryCalculations.js';
+import { analyzeDDFA } from './ddfaCalculations.js';
 
 export const ANALYSIS_WINDOW_DURATION = 120000;
 export const ANALYSIS_REFRESH_INTERVAL = 5000;
@@ -21,6 +22,7 @@ export function analyzeRollingWindow(readings, analyzedAt) {
   const windowReadings = pruneRollingReadings(readings, analyzedAt);
   return {
     ...analyzeHRV(windowReadings),
+    ddfa: analyzeDDFA(windowReadings),
     respiration: estimateRespiratoryRate(windowReadings),
     analyzedAt,
     windowStartedAt: Math.max(

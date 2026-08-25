@@ -135,6 +135,29 @@
    - Export complete retained chart history independently of display granularity, with timestamps, session, metric values/units, and aggregation counts.
    - Use safe CSV escaping, an Excel-compatible UTF-8 marker, a descriptive dated filename, and an offline local download.
    - Add deterministic tests and perform mobile, build, PWA, deployment, and live verification.
+24. Research, validate, and add Dynamic Detrended Fluctuation Analysis (DDFA).
+   - Complete the supplied SQ3R/CRAAP research template using the original DDFA paper, its numerical-validation supplement, the published DDFA-2 exercise-threshold study, and an independent conventional-DFA reference implementation.
+   - Keep DDFA distinct from conventional DFA alpha1: implement the published second-order DDFA local exponent alpha(t, s), with dynamic segment length 5s, maximally overlapping windows, and the published three-scale finite-difference derivative.
+   - Apply the published 200–2,000 ms physiological bounds and seven-beat, 10% rolling-median filter without changing the established RMSSD, SDNN, or BRPM input streams.
+   - Compute every available integer scale from 5 through 20 beats from the rolling RR window and expose DDFA alpha10 as the clearly scale-qualified headline value; never present an invented unitless aggregate as “DDFA.”
+   - Refresh the DDFA profile on the established five-second rolling-analysis cadence after the initial two-minute collection period, and retain the latest completed result while the next refresh is computed.
+   - Add the DDFA alpha10 card first, then RMSSD, SDNN, Heart Rate, and BRPM; use the same order for separate raw-value trend graphs.
+   - Add a detailed DDFA scale-profile section, persistence, complete-history CSV export, disconnected restoration, bounded-history compaction, and mobile/accessibility behavior consistent with existing metrics.
+   - Validate polynomial detrending and finite differences with exact fixtures, compare conventional fluctuation values to the PhysioNet reference, test synthetic uncorrelated/correlated signals and contaminated RR examples, and enforce JavaScript/Kotlin parity fixtures before release.
+   - State evidence limits: DDFA-based exercise thresholds are promising but cohort- and protocol-dependent, and this app does not claim to determine lactate/ventilatory thresholds or provide diagnosis.
+25. Optimize the public PWA for search and AI-assisted discovery using documented guidance.
+   - Extend the supplied research-template process with current primary Google Search documentation, Schema.org definitions, and web standards; separate supported practices from speculative “AI SEO” claims.
+   - Add a unique descriptive title and meta description, canonical URL, Open Graph/social metadata, theme/application metadata, and indexable semantic copy that accurately describes Bluetooth requirements, offline installation, privacy-local storage, DDFA, HRV, and CSV features.
+   - Add valid JSON-LD only for schema types and properties actually represented by the site; do not imply medical-device certification, reviews, ratings, or health claims.
+   - Add robots.txt and sitemap.xml with production GitHub Pages paths, useful link/content structure, accessible headings, and crawlable explanatory/help content without duplicating or keyword-stuffing the interface.
+   - Review built-page rendering, manifest/canonical consistency, Core Web Vitals-sensitive asset loading, structured-data syntax, sitemap/robots responses, and offline PWA behavior.
+   - Document AI-discovery choices such as clear authorship/provenance and machine-readable factual content; treat llms.txt as optional/non-ranking unless authoritative evidence changes.
+26. After all DDFA, Android, and SEO work, re-research and audit the BRPM estimator.
+   - Use the supplied SQ3R/CRAAP template again, prioritizing primary respiratory-rate-from-RR/ECG literature, validated open implementations or datasets, and sensor-quality evidence.
+   - Reconstruct the current Lomb–Scargle pipeline line by line: RR preprocessing, irregular timestamps, detrending, frequency search band/resolution, peak selection, confidence/prominence, minimum duration/count, and five-second rolling behavior.
+   - Test published or openly available example signals and independent reference calculations, plus deterministic synthetic respiration, harmonics, cadence interference, artifacts, changing rate, exercise-rate, missing-data, and no-respiratory-sinus-arrhythmia cases.
+   - Fix the formula or quality gating only when the evidence identifies a concrete issue; otherwise preserve it and document why apparent differences can occur.
+   - Apply any justified correction identically to web and Android, add parity fixtures, and rerun persistence, CSV, UI, build, offline, Room, lint, and release gates.
 
 ### Live-chart controls and CSV research decision
 
@@ -274,3 +297,17 @@
 - [x] CSV and chart-mode automated tests pass
 - [x] Updated production build and offline PWA verification pass
 - [x] Live-chart and CSV update deployed and verified live
+- [x] DDFA research record completed from the supplied template
+- [x] Published DDFA-2 algorithm and preprocessing implemented on the web
+- [x] DDFA alpha10 lead card and detailed scale profile implemented
+- [x] Metric cards and graphs ordered DDFA, RMSSD, SDNN, Heart Rate, BRPM
+- [x] DDFA persistence, history, CSV, restoration, and clearing implemented
+- [x] Primary-reference, synthetic-signal, contamination, and edge-case DDFA tests pass
+- [x] Web production, offline PWA, mobile, and accessibility gates pass
+- [x] SEO and AI-discoverability research added to the research record
+- [x] Metadata, canonical, semantic content, and truthful structured data implemented
+- [x] Robots, sitemap, built-page, performance, and structured-data checks pass
+- [x] Final BRPM SQ3R/CRAAP research audit completed
+- [x] Current BRPM output independently reproduced or concrete defect identified
+- [x] Any justified BRPM correction ported identically to web and Android
+- [x] BRPM scientific, adversarial, parity, and full regression gates pass
