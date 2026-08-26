@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { formatOccurrenceTime } from '../utils/timeFormatting';
 import { aggregateChartPoints, findNearestPointIndex } from '../utils/chartStorage';
 import { calculateLinearAxis, formatAxisTick } from '../utils/chartScale';
-import { downloadChartCsv } from '../utils/csvExport';
+import { downloadChartCsv, EXPORT_GRANULARITIES } from '../utils/csvExport';
 import { latestInspectionIndex } from '../utils/chartInteraction';
 
 const SERIES = [
@@ -122,6 +122,9 @@ function TrendGraph({ points }) {
   const [granularity, setGranularity] = useState('auto');
   const [inspectionEnabled, setInspectionEnabled] = useState(true);
   const [followLatest, setFollowLatest] = useState(true);
+  const [exportGranularity, setExportGranularity] = useState(5000);
+  const [exportFrom, setExportFrom] = useState('');
+  const [exportTo, setExportTo] = useState('');
   const storedPoints = useMemo(
     () => points.filter(point => Number.isFinite(point.timestamp)).sort((a, b) => a.timestamp - b.timestamp),
     [points]
@@ -178,6 +181,11 @@ function TrendGraph({ points }) {
     const values = displayedPoints.map(point => point[series.key]).filter(Number.isFinite);
     return { ...series, min: values.length ? Math.min(...values) : null, max: values.length ? Math.max(...values) : null, latest: values.at(-1) };
   });
+  const exportOptions = {
+    granularity: exportGranularity,
+    from: exportFrom ? new Date(exportFrom).getTime() : null,
+    to: exportTo ? new Date(exportTo).getTime() : null
+  };
 
   return (
     <section className="trend-section" aria-labelledby="trend-heading">
@@ -212,7 +220,12 @@ function TrendGraph({ points }) {
               <input type="checkbox" checked={followLatest} disabled={!inspectionEnabled} onChange={event => event.target.checked ? resumeLive() : setFollowLatest(false)} />
               <span>Follow Latest</span>
             </label>
-            <button type="button" className="trend-action" onClick={() => downloadChartCsv(storedPoints)} disabled={!storedPoints.length}>Export CSV</button>
+            <div className="export-controls" aria-label="CSV Export Options">
+              <label><span>Export Resolution</span><select value={exportGranularity} onChange={event => setExportGranularity(['week', 'month', 'year'].includes(event.target.value) ? event.target.value : Number(event.target.value))}>{EXPORT_GRANULARITIES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+              <label><span>From</span><input type="datetime-local" value={exportFrom} onChange={event => setExportFrom(event.target.value)} /></label>
+              <label><span>To</span><input type="datetime-local" value={exportTo} onChange={event => setExportTo(event.target.value)} /></label>
+              <button type="button" className="trend-action" onClick={() => downloadChartCsv(storedPoints, exportOptions)} disabled={!storedPoints.length || (exportFrom && exportTo && exportOptions.from > exportOptions.to)}>Export CSV</button>
+            </div>
           </div>
           {inspectionEnabled && !followLatest && displayedPoints.length > 0 && (
             <div className="trend-paused" role="status"><span>Viewing History</span><button type="button" onClick={resumeLive}>Resume Live</button></div>

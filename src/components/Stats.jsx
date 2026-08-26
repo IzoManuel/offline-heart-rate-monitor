@@ -1,12 +1,12 @@
 import React from 'react';
 import { formatOccurrenceTime } from '../utils/timeFormatting';
 
-function Stats({ stats, readingsCount }) {
+function Stats({ stats, readingsCount, averageLabel = 'Current Session' }) {
   return (
     <div className="stats-section">
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-label">Average</div>
+          <div className="stat-label">Average · {averageLabel}</div>
           <div className="stat-value">{stats.average}</div>
           <div className="stat-unit">BPM</div>
         </div>

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { chartPointsToCsv, createCsvFilename } from '../src/utils/csvExport.js';
+import { chartPointsToCsv, createCsvFilename, selectExportPoints } from '../src/utils/csvExport.js';
 
 test('exports ordered retained records with units, sessions, and sample counts', () => {
   const csv = chartPointsToCsv([
@@ -16,4 +16,14 @@ test('exports ordered retained records with units, sessions, and sample counts',
 
 test('creates a stable dated CSV filename', () => {
   assert.equal(createCsvFilename(new Date('2026-08-24T12:00:00Z')), 'heart-rate-history-2026-08-24.csv');
+});
+
+test('filters and aggregates CSV exports independently of chart display', () => {
+  const points = [
+    { timestamp: 0, sessionStartedAt: 1, heartRate: 60, rmssd: 20 },
+    { timestamp: 30_000, sessionStartedAt: 1, heartRate: 80, rmssd: 40 },
+    { timestamp: 90_000, sessionStartedAt: 1, heartRate: 100, rmssd: 60 },
+  ];
+  const selected = selectExportPoints(points, { granularity: 60_000, from: 30_000, to: 90_000 });
+  assert.deepEqual(selected.map(point => [point.timestamp, point.heartRate, point.rmssd]), [[0, 80, 40], [60_000, 100, 60]]);
 });

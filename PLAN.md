@@ -92,6 +92,17 @@
 - The database remains capped at 10,000 records. When full, adjacent records are averaged and compacted, trading old precision for long retention without unbounded storage.
 - Display granularity is independent of storage resolution: users can request a coarser view, while Auto targets a manageable number of SVG points.
 - Long-range values are trends derived from averages, not raw beat-level measurements; exact five-second detail is naturally concentrated in more recent history.
+
+27. Extend CSV export resolution and range selection.
+   - Research accessible export controls and time-series aggregation conventions.
+   - Keep raw five-second export available while adding 1-minute, 5-minute, 15-minute, 1-hour, 1-day, 1-week, 1-month, and 1-year aggregation.
+   - Add optional local date/time start and end filters; reject an inverted range and preserve session-aware independent metric averages/counts.
+   - Keep export complete and offline, with explicit timestamps, units, session identity, and aggregation metadata.
+   - Add deterministic filtering/aggregation tests and verify mobile layout.
+28. Add an opt-in web Screen Reader control.
+   - Follow Web Speech API and WCAG-compatible control patterns: explicit enablement, interval selection, metric selection, cancellation, and visible unsupported-browser feedback.
+   - Persist preferences locally, read only available current metrics, avoid speech queue buildup, and keep the existing visual cards unchanged.
+   - Add accessibility and production regression checks.
 19. Add calendar-scale long-term graph granularity.
    - Add Week, Month, and Year choices to the existing granularity selector.
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.
@@ -311,3 +322,6 @@
 - [x] Current BRPM output independently reproduced or concrete defect identified
 - [x] Any justified BRPM correction ported identically to web and Android
 - [x] BRPM scientific, adversarial, parity, and full regression gates pass
+- [x] CSV export supports raw and selectable minute/hour/day/week/month/year aggregation
+- [x] CSV export supports optional validated local date/time ranges and preserves counts
+- [x] Web Screen Reader control supports opt-in metric selection and configurable speech cadence

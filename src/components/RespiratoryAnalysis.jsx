@@ -1,7 +1,7 @@
 import React from 'react';
 import { formatOccurrenceTime } from '../utils/timeFormatting';
 
-function RespiratoryAnalysis({ results, rrCount, brpmExtrema }) {
+function RespiratoryAnalysis({ results, rrCount, brpmExtrema, averageOverride }) {
   const respiration = results?.respiration;
 
   return (
@@ -31,7 +31,7 @@ function RespiratoryAnalysis({ results, rrCount, brpmExtrema }) {
             </span>
             <div className="metric-extrema respiratory-extrema">
               <span>Min {brpmExtrema?.min.value.toFixed(1) ?? '—'} BRPM · {formatOccurrenceTime(brpmExtrema?.min.occurredAt)}</span>
-              <span>Average {Number.isFinite(brpmExtrema?.average) ? brpmExtrema.average.toFixed(1) : '—'} BRPM</span>
+              <span>Average {Number.isFinite(averageOverride) ? averageOverride.toFixed(1) : Number.isFinite(brpmExtrema?.average) ? brpmExtrema.average.toFixed(1) : '—'} BRPM</span>
               <span>Max {brpmExtrema?.max.value.toFixed(1) ?? '—'} BRPM · {formatOccurrenceTime(brpmExtrema?.max.occurredAt)}</span>
             </div>
           </div>

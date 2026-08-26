@@ -1,7 +1,7 @@
 import React from 'react';
 import { formatOccurrenceTime } from '../utils/timeFormatting';
 
-function DDFAAnalysis({ results, extrema }) {
+function DDFAAnalysis({ results, extrema, averageOverride }) {
   const ddfa = results?.ddfa;
   if (!ddfa) return null;
   const values = ddfa.profile.map(point => point.alpha);
@@ -20,7 +20,7 @@ function DDFAAnalysis({ results, extrema }) {
           <span className="hrv-metric-description">Unitless · 10-Beat Scale</span>
           <div className="metric-extrema">
             <span>Min {extrema ? extrema.min.value.toFixed(2) : '—'} · {formatOccurrenceTime(extrema?.min.occurredAt)}</span>
-            <span>Average {Number.isFinite(extrema?.average) ? extrema.average.toFixed(2) : '—'}</span>
+            <span>Average {Number.isFinite(averageOverride) ? averageOverride.toFixed(2) : Number.isFinite(extrema?.average) ? extrema.average.toFixed(2) : '—'}</span>
             <span>Max {extrema ? extrema.max.value.toFixed(2) : '—'} · {formatOccurrenceTime(extrema?.max.occurredAt)}</span>
           </div>
         </div>

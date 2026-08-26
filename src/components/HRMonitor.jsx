@@ -6,6 +6,8 @@ import HRVAnalysis from './HRVAnalysis';
 import RespiratoryAnalysis from './RespiratoryAnalysis';
 import DDFAAnalysis from './DDFAAnalysis';
 import TrendGraph from './TrendGraph';
+import ScreenReaderControls from './ScreenReaderControls';
+import AverageScopeControls from './AverageScopeControls';
 import {
   connectToHeartRateMonitor,
   startHeartRateNotifications,
@@ -66,6 +68,7 @@ function HRMonitor() {
   const [sdnnExtrema, setSDNNExtrema] = useState(null);
   const [brpmExtrema, setBRPMExtrema] = useState(null);
   const [chartPoints, setChartPoints] = useState([]);
+  const [averageScope, setAverageScope] = useState({ values: {}, label: 'Current Session' });
   const hrvReadingsRef = useRef([]);
   const lastAnalysisAtRef = useRef(null);
   const currentHRRef = useRef(0);
@@ -434,6 +437,14 @@ function HRMonitor() {
   const displayedSDNNExtrema = isConnected ? sdnnExtrema : savedSession?.sdnnExtrema;
   const displayedBRPMExtrema = isConnected ? brpmExtrema : savedSession?.brpmExtrema;
   const hasDisplayedData = isConnected || Boolean(savedSession);
+  const scopedAverage = key => averageScope.values[key];
+  const screenReaderSnapshot = {
+    ddfaAlpha10: displayedResults?.ddfa?.alpha10 ?? displayedResults?.ddfaAlpha10,
+    rmssd: displayedResults?.rmssd,
+    sdnn: displayedResults?.sdnn,
+    heartRate: displayedCurrentHR,
+    brpm: displayedResults?.respiration?.breathsPerMinute ?? displayedResults?.brpm
+  };
 
   return (
     <div className="hr-monitor">
@@ -456,6 +467,8 @@ function HRMonitor() {
           rmssdExtrema={displayedRMSSDExtrema}
           sdnnExtrema={displayedSDNNExtrema}
           brpmExtrema={displayedBRPMExtrema}
+          averageOverrides={averageScope.values}
+          averageLabel={averageScope.label}
           savedSession={isConnected ? null : savedSession}
           onClearSavedData={handleClearSavedData}
           onConnect={handleConnect}
@@ -470,22 +483,27 @@ function HRMonitor() {
 
         {hasDisplayedData && (
           <>
-            <DDFAAnalysis results={displayedResults} extrema={displayedDDFAExtrema} />
+            <AverageScopeControls points={chartPoints} sessionStartedAt={sessionStartedAt ?? savedSession?.sessionStartedAt} onChange={setAverageScope} />
+            <DDFAAnalysis results={displayedResults} extrema={displayedDDFAExtrema} averageOverride={scopedAverage('ddfaAlpha10')} />
             <HRVAnalysis
               isConnected={isConnected}
               analysisState={analysisState}
               results={displayedResults}
               rmssdExtrema={displayedRMSSDExtrema}
               sdnnExtrema={displayedSDNNExtrema}
+              averageOverride={scopedAverage('rmssd')}
+              sdnnAverageOverride={scopedAverage('sdnn')}
             />
             <HRDisplay currentHR={displayedCurrentHR} />
-            <Stats stats={displayedStats} readingsCount={displayedReadingsCount} />
+            <Stats stats={{ ...displayedStats, average: Number.isFinite(scopedAverage('heartRate')) ? scopedAverage('heartRate').toFixed(1) : displayedStats?.average }} readingsCount={displayedReadingsCount} averageLabel={averageScope.label} />
             <RespiratoryAnalysis
               results={displayedResults}
               rrCount={isConnected ? analysisState.rrCount : 0}
               brpmExtrema={displayedBRPMExtrema}
+              averageOverride={scopedAverage('brpm')}
             />
             <TrendGraph points={chartPoints} />
+            <ScreenReaderControls snapshot={screenReaderSnapshot} disabled={!hasDisplayedData} />
           </>
         )}
 

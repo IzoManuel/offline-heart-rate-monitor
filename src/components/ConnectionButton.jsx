@@ -16,6 +16,8 @@ function ConnectionButton({
   rmssdExtrema,
   sdnnExtrema,
   brpmExtrema,
+  averageOverrides,
+  averageLabel,
   savedSession,
   onClearSavedData,
   onConnect,
@@ -52,6 +54,8 @@ function ConnectionButton({
       rmssdExtrema={rmssdExtrema}
       sdnnExtrema={sdnnExtrema}
       brpmExtrema={brpmExtrema}
+      averageOverrides={averageOverrides}
+      averageLabel={averageLabel}
       deviceInfo={deviceInfo}
       sensorLocation={sensorLocation}
       includeDeviceDetails={isConnected}

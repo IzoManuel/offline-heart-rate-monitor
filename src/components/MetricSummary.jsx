@@ -11,7 +11,9 @@ function MetricSummary({
   brpmExtrema,
   deviceInfo,
   sensorLocation,
-  includeDeviceDetails = false
+  includeDeviceDetails = false,
+  averageOverrides = {},
+  averageLabel = 'Current Session'
 }) {
   const hasDeviceDetails = includeDeviceDetails && deviceInfo && (
     deviceInfo.manufacturer || deviceInfo.model || deviceInfo.serial ||
@@ -27,7 +29,7 @@ function MetricSummary({
           <strong>{analysisResults?.ddfa?.available ? analysisResults.ddfa.alpha10.toFixed(2) : '—'} <small>Unitless</small></strong>
           <div className="summary-extrema">
             <span>Min {ddfaExtrema ? ddfaExtrema.min.value.toFixed(2) : '—'} · {formatOccurrenceTime(ddfaExtrema?.min.occurredAt)}</span>
-            <span>Average {Number.isFinite(ddfaExtrema?.average) ? ddfaExtrema.average.toFixed(2) : '—'}</span>
+            <span>Average {Number.isFinite(averageOverrides.ddfaAlpha10) ? averageOverrides.ddfaAlpha10.toFixed(2) : Number.isFinite(ddfaExtrema?.average) ? ddfaExtrema.average.toFixed(2) : '—'} · {averageLabel}</span>
             <span>Max {ddfaExtrema ? ddfaExtrema.max.value.toFixed(2) : '—'} · {formatOccurrenceTime(ddfaExtrema?.max.occurredAt)}</span>
           </div>
         </div>
@@ -38,7 +40,7 @@ function MetricSummary({
           </strong>
           <div className="summary-extrema">
             <span>Min {rmssdExtrema ? rmssdExtrema.min.value.toFixed(1) : '—'} · {formatOccurrenceTime(rmssdExtrema?.min.occurredAt)}</span>
-            <span>Average {Number.isFinite(rmssdExtrema?.average) ? rmssdExtrema.average.toFixed(1) : '—'} ms</span>
+            <span>Average {Number.isFinite(averageOverrides.rmssd) ? averageOverrides.rmssd.toFixed(1) : Number.isFinite(rmssdExtrema?.average) ? rmssdExtrema.average.toFixed(1) : '—'} ms · {averageLabel}</span>
             <span>Max {rmssdExtrema ? rmssdExtrema.max.value.toFixed(1) : '—'} · {formatOccurrenceTime(rmssdExtrema?.max.occurredAt)}</span>
           </div>
         </div>
@@ -49,7 +51,7 @@ function MetricSummary({
           </strong>
           <div className="summary-extrema">
             <span>Min {sdnnExtrema ? sdnnExtrema.min.value.toFixed(1) : '—'} · {formatOccurrenceTime(sdnnExtrema?.min.occurredAt)}</span>
-            <span>Average {Number.isFinite(sdnnExtrema?.average) ? sdnnExtrema.average.toFixed(1) : '—'} ms</span>
+            <span>Average {Number.isFinite(averageOverrides.sdnn) ? averageOverrides.sdnn.toFixed(1) : Number.isFinite(sdnnExtrema?.average) ? sdnnExtrema.average.toFixed(1) : '—'} ms · {averageLabel}</span>
             <span>Max {sdnnExtrema ? sdnnExtrema.max.value.toFixed(1) : '—'} · {formatOccurrenceTime(sdnnExtrema?.max.occurredAt)}</span>
           </div>
         </div>
@@ -58,7 +60,7 @@ function MetricSummary({
           <strong>{currentHR || '—'} <small>BPM</small></strong>
           <div className="summary-extrema">
             <span>Min {heartRateStats?.min || '—'} · {formatOccurrenceTime(heartRateStats?.minAt)}</span>
-            <span>Average {heartRateStats?.average || '—'} BPM</span>
+            <span>Average {Number.isFinite(averageOverrides.heartRate) ? averageOverrides.heartRate.toFixed(1) : heartRateStats?.average || '—'} BPM · {averageLabel}</span>
             <span>Max {heartRateStats?.max || '—'} · {formatOccurrenceTime(heartRateStats?.maxAt)}</span>
           </div>
         </div>
@@ -71,7 +73,7 @@ function MetricSummary({
           </strong>
           <div className="summary-extrema">
             <span>Min {brpmExtrema ? brpmExtrema.min.value.toFixed(1) : '—'} · {formatOccurrenceTime(brpmExtrema?.min.occurredAt)}</span>
-            <span>Average {Number.isFinite(brpmExtrema?.average) ? brpmExtrema.average.toFixed(1) : '—'} BRPM</span>
+            <span>Average {Number.isFinite(averageOverrides.brpm) ? averageOverrides.brpm.toFixed(1) : Number.isFinite(brpmExtrema?.average) ? brpmExtrema.average.toFixed(1) : '—'} BRPM · {averageLabel}</span>
             <span>Max {brpmExtrema ? brpmExtrema.max.value.toFixed(1) : '—'} · {formatOccurrenceTime(brpmExtrema?.max.occurredAt)}</span>
           </div>
         </div>
