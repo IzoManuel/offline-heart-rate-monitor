@@ -332,3 +332,5 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
 - [x] CSV export supports raw and selectable minute/hour/day/week/month/year aggregation
 - [x] CSV export supports optional validated local date/time ranges and preserves counts
 - [x] Web Screen Reader control supports opt-in metric selection and configurable speech cadence
+- [x] Web Metric Alerts support persisted thresholds, repeat cadence, hysteresis, speech, notifications, and acknowledgement
+- [x] Web alert cadence is stable under high-frequency sensor updates
