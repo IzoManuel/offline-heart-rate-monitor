@@ -8,6 +8,7 @@ import DDFAAnalysis from './DDFAAnalysis';
 import TrendGraph from './TrendGraph';
 import ScreenReaderControls from './ScreenReaderControls';
 import AverageScopeControls from './AverageScopeControls';
+import WebAlarmControls from './WebAlarmControls';
 import {
   connectToHeartRateMonitor,
   startHeartRateNotifications,
@@ -504,6 +505,7 @@ function HRMonitor() {
             />
             <TrendGraph points={chartPoints} />
             <ScreenReaderControls snapshot={screenReaderSnapshot} disabled={!hasDisplayedData} />
+            <WebAlarmControls snapshot={screenReaderSnapshot} />
           </>
         )}
 

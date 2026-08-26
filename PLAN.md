@@ -1,5 +1,7 @@
 # Offline Android PWA delivery plan
 
+Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to both platform plans and the shared contract.
+
 1. Inspect the workspace and authenticated GitHub account.
 2. Import the upstream Web HR Monitor source into this directory.
 3. Add an installable manifest, icons, and a service worker that precaches the production build.
@@ -103,6 +105,11 @@
    - Follow Web Speech API and WCAG-compatible control patterns: explicit enablement, interval selection, metric selection, cancellation, and visible unsupported-browser feedback.
    - Persist preferences locally, read only available current metrics, avoid speech queue buildup, and keep the existing visual cards unchanged.
    - Add accessibility and production regression checks.
+29. Keep alert behavior in parity with Android.
+   - Add compact persisted metric alerts for DDFA α10, RMSSD, SDNN, Heart Rate, and BRPM.
+   - Support Above/Below thresholds, configurable repeat intervals, hysteresis, spoken alerts, and browser notifications.
+   - Request notification permission only from an explicit user action; show an accessible status when unsupported or denied.
+   - Document browser background-execution limits and add alert evaluation tests.
 19. Add calendar-scale long-term graph granularity.
    - Add Week, Month, and Year choices to the existing granularity selector.
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.

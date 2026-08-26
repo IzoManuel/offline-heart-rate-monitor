@@ -735,6 +735,13 @@ body {
 .screen-reader-controls > label, .screen-reader-controls fieldset { margin-top: .75rem; }
 .screen-reader-controls fieldset { display: flex; flex-wrap: wrap; gap: .75rem; border: 0; padding: 0; }
 .screen-reader-controls select { display: block; margin-top: .25rem; min-height: 2.2rem; }
+.web-alerts { margin-top: 1rem; padding: .8rem 1rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--surface); }
+.web-alerts summary { cursor: pointer; font-weight: 700; }
+.web-alert-form { display: flex; flex-wrap: wrap; align-items: end; gap: .5rem; margin: .75rem 0; }
+.web-alert-form label { display: grid; gap: .2rem; font-size: .75rem; }
+.web-alert-form select, .web-alert-form input { min-height: 2.1rem; max-width: 10rem; }
+.web-alerts ul { margin: .75rem 0 0; padding-left: 1.2rem; }
+.web-alerts li { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .35rem 0; }
 
 .trend-controls .trend-granularity { margin-top: 0; }
 
