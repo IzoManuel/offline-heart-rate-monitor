@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ALARM_INTERVALS, ALARM_METRICS, alarmValue, isAlarmSafe, isAlarmViolated, loadWebAlarms, saveWebAlarms } from '../utils/webAlarms';
 
 function WebAlarmControls({ snapshot }) {
@@ -8,13 +8,15 @@ function WebAlarmControls({ snapshot }) {
   const [threshold, setThreshold] = useState('10');
   const [repeatSeconds, setRepeatSeconds] = useState(5);
   const [permission, setPermission] = useState(() => 'Notification' in window ? Notification.permission : 'unsupported');
+  const snapshotRef = useRef(snapshot);
+  useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
   useEffect(() => { saveWebAlarms(alarms); }, [alarms]);
   useEffect(() => {
-    if (!snapshot) return undefined;
+    if (!snapshotRef.current) return undefined;
     const timer = window.setInterval(() => {
       const now = Date.now();
       alarms.forEach(alarm => {
-        const value = alarmValue(alarm, snapshot);
+        const value = alarmValue(alarm, snapshotRef.current);
         if (isAlarmSafe(alarm, value) && (!alarm.acknowledged || alarm.lastTriggeredAt)) update(alarm.id, { acknowledged: false, lastTriggeredAt: null });
         if (!alarm.enabled || alarm.acknowledged || !isAlarmViolated(alarm, value)) return;
         if (alarm.lastTriggeredAt && now - alarm.lastTriggeredAt < alarm.repeatSeconds * 1000) return;
@@ -26,7 +28,7 @@ function WebAlarmControls({ snapshot }) {
       });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [snapshot, alarms, permission]);
+  }, [Boolean(snapshot), alarms, permission]);
   const requestPermission = async () => { if ('Notification' in window) setPermission(await Notification.requestPermission()); };
   const addAlarm = () => { const value = Number(threshold); if (!Number.isFinite(value)) return; const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`; setAlarms(previous => [...previous, { id, metric, condition, threshold: value, repeatSeconds, enabled: true, lastTriggeredAt: null, acknowledged: false }]); };
   const update = (id, patch) => setAlarms(previous => previous.map(alarm => alarm.id === id ? { ...alarm, ...patch } : alarm));
