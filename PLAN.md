@@ -129,6 +129,10 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
    - [x] Group mutually related content into Overview (live metrics), Trends (charts), and Tools (averages, speech, and alerts), while keeping connection context visible above the tabs.
    - [x] Implement accessible tabs with tab/tabpanel relationships, roving focus, arrow/Home/End keyboard navigation, and compact-width horizontal scrolling.
    - [ ] Complete visual review of all tab panels at desktop, tablet, and mobile widths after deployment.
+34. Remove repeated and verbose explanatory copy.
+   - [x] Confirm the explanatory block is outside the tab panels and therefore repeats as persistent context while switching tabs.
+   - [x] Replace the title, expandable explanation, and multiple paragraphs with one concise privacy and purpose sentence.
+   - [ ] Verify the shortened copy in the deployed PWA.
 19. Add calendar-scale long-term graph granularity.
    - Add Week, Month, and Year choices to the existing granularity selector.
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.

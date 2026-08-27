@@ -538,13 +538,7 @@ function HRMonitor() {
       </main>
 
       <aside className="about-app" aria-labelledby="about-app-heading">
-        <h2 id="about-app-heading">Private Offline DDFA And HRV Monitoring</h2>
-        <p>Install this free progressive web app on a compatible Android phone to monitor a Bluetooth Low Energy heart-rate strap after the application shell has been cached. Measurements and retained history stay in this browser unless you export a CSV file.</p>
-        <details>
-          <summary>How The Metrics Work</summary>
-          <p>DDFA α10 is a unitless, ten-beat-scale DDFA-2 correlation exponent. RMSSD and SDNN are HRV measurements in milliseconds. Heart Rate is shown in BPM, while BRPM is an RR-derived breathing-rate estimate rather than a direct respiratory sensor measurement.</p>
-          <p>The rolling two-minute analysis refreshes every five seconds. Results are wellness information, not a medical measurement, diagnosis, or exercise-threshold determination.</p>
-        </details>
+        <p id="about-app-heading">Private offline DDFA and HRV monitoring for Bluetooth heart-rate sensors; measurements stay in this browser unless exported.</p>
       </aside>
 
       <footer className="footer">
