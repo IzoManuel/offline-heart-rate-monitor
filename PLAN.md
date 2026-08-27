@@ -138,6 +138,10 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
    - [x] Add a direct Test Voice action, visible status feedback, cancellation/resume handling, and shared speech helper for the reader and alerts.
    - [x] Redesign alert rows with grouped summaries, accessible edit/delete icon actions, enable state, acknowledgement, and inline edit/cancel behavior.
    - [ ] Verify voice playback and alert notifications on a supported physical browser/device.
+36. Standardize interface icons on Font Awesome.
+   - [x] Replace Unicode edit, delete, and battery symbols with Font Awesome icons.
+   - [x] Preserve accessible names and tooltips for icon-only actions.
+   - [ ] Verify icon rendering in the production PWA.
 19. Add calendar-scale long-term graph granularity.
    - Add Week, Month, and Year choices to the existing granularity selector.
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.

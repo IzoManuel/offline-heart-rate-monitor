@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import MetricSummary from './MetricSummary';
 import { formatOccurrenceTime } from '../utils/timeFormatting';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBatteryHalf } from '@fortawesome/free-solid-svg-icons';
 
 function ConnectionButton({
   isConnected,
@@ -98,7 +100,7 @@ function ConnectionButton({
           <span className="status-indicator connected"></span>
           <span className="device-name">{deviceName}</span>
           {batteryLevel !== null && (
-            <span className="battery-level"><span className="battery-icon">🔋</span>{batteryLevel}%</span>
+            <span className="battery-level"><FontAwesomeIcon icon={faBatteryHalf} aria-hidden="true" /> {batteryLevel}%</span>
           )}
         </div>
         <button className="btn-danger" onClick={onDisconnect}>Disconnect</button>
