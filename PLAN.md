@@ -372,3 +372,4 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
 - [x] Web Screen Reader control supports opt-in metric selection and configurable speech cadence
 - [x] Web Metric Alerts support persisted thresholds, repeat cadence, hysteresis, speech, notifications, and acknowledgement
 - [x] Web alert cadence is stable under high-frequency sensor updates
+- [x] Overview marker card consistency research and shared geometry implemented

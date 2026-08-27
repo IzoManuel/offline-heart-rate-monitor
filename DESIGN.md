@@ -25,6 +25,10 @@ Existing collapsibles, native form controls, headings, labels, keyboard chart in
 
 The tabs follow the WAI-ARIA Tabs pattern: one active tab, associated `tabpanel`, `aria-controls`/`aria-labelledby`, roving tab focus, and Left/Right (plus Home/End) keyboard navigation. Tabs are used here because these panels are related facets of the same monitor, and users generally do not need to compare the full controls and chart simultaneously. The Overview panel is the default and keeps the most important live values immediately visible.
 
+## Overview card consistency
+
+The Overview treats the marker set as one ordered collection: DDFA α10, RMSSD/SDNN, Heart Rate, then BRPM. Equal grid tracks, consistent padding, aligned boundaries, minimum heights, and a shared value-first hierarchy make like-for-like values scannable even when supporting details differ. This follows Material's recommendation to place dashboard cards in a consistent pattern and define dimensions when a collection needs alignment ([Material cards](https://m2.material.io/develop/android/components/cards/)); it also follows dashboard research recommending high consistency for repeated content types ([Baymard dashboard cards](https://baymard.com/blog/cards-dashboard-layout)).
+
 ## Visual constraints
 
 - Keep the current blue/neutral color tokens and card language.
