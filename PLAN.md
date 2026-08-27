@@ -110,6 +110,15 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
    - Support Above/Below thresholds, configurable repeat intervals, hysteresis, spoken alerts, and browser notifications.
    - Request notification permission only from an explicit user action; show an accessible status when unsupported or denied.
    - Document browser background-execution limits and add alert evaluation tests.
+30. Repair web Screen Reader playback stability.
+   - [x] Investigate reports of no audible output and trace the speech effect lifecycle during five-second live updates.
+   - [x] Prevent live snapshot rerenders from cancelling an utterance or recreating the speech timer.
+   - [x] Keep the latest snapshot and selected metrics available to a stable interval callback, with safe browser API guards.
+   - [x] Run the production regression suite; manual device playback verification remains recommended on a supported browser.
+31. Polish web form controls for visual and mobile consistency.
+   - [x] Review Screen Reader, Metric Alerts, Average Scope, and export control layout and identify inconsistent native styling.
+   - [x] Apply shared labels, fields, borders, focus states, spacing, checkbox chips, and responsive form grids using the existing design tokens.
+   - [x] Verify the production build and inspect the forms at desktop and narrow mobile widths.
 19. Add calendar-scale long-term graph granularity.
    - Add Week, Month, and Year choices to the existing granularity selector.
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.

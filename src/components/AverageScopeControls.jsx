@@ -21,8 +21,8 @@ function AverageScopeControls({ points, sessionStartedAt, onChange }) {
   const apply = () => onChange({ values, label: scope === 'session' ? 'Current Session' : scope === 'today' ? 'Today' : 'Custom Range' });
   return <section className="average-scope-controls" aria-labelledby="average-scope-heading">
     <h2 id="average-scope-heading">Card Average Scope</h2><p>Choose which retained measurements supply the Average values on the cards.</p>
-    <label><span>Scope</span><select value={scope} onChange={event => setScope(event.target.value)}><option value="session">Current Session</option><option value="today">Today</option><option value="custom">Custom Date/Time Range</option></select></label>
-    {scope === 'custom' && <div className="average-range"><label><span>From</span><input type="datetime-local" value={from} onChange={event => setFrom(event.target.value)} /></label><label><span>To</span><input type="datetime-local" value={to} onChange={event => setTo(event.target.value)} /></label></div>}
+    <label className="form-field"><span>Scope</span><select value={scope} onChange={event => setScope(event.target.value)}><option value="session">Current Session</option><option value="today">Today</option><option value="custom">Custom Date/Time Range</option></select></label>
+    {scope === 'custom' && <div className="average-range"><label className="form-field"><span>From</span><input type="datetime-local" value={from} onChange={event => setFrom(event.target.value)} /></label><label className="form-field"><span>To</span><input type="datetime-local" value={to} onChange={event => setTo(event.target.value)} /></label></div>}
     <button type="button" className="trend-action" disabled={!rangeValid} onClick={apply}>Apply Average Scope</button>
   </section>;
 }
