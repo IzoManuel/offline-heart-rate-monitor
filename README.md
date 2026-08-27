@@ -41,6 +41,10 @@ After installing, close the app completely, enable airplane mode, turn Bluetooth
 - Bluetooth device discovery must follow a user tap, so the app cannot silently connect on startup
 - HRV results require a sensor that supplies RR-interval data
 
+### Linux Chrome/Brave speech setup
+
+On Linux, Chromium-based browsers may report `synthesis-failed` or no voices unless launched with their Speech Dispatcher integration enabled. After confirming `speech-dispatcher` and `espeak-ng` are installed, completely exit Chrome or Brave (including background processes), then launch the browser with `--enable-speech-dispatcher` and reload the app. The browser's existing desktop launcher must be configured with this flag if you want the setting to persist.
+
 ## Respiratory estimate
 
 The HRM 200 does not send a direct breath measurement through the standard Bluetooth Heart Rate Service. It sends heart rate and RR intervals; this app estimates breathing rate from breathing-related modulation of the latest two minutes of those intervals, called respiratory sinus arrhythmia.

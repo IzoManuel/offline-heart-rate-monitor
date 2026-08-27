@@ -378,6 +378,7 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
 - [x] Voice reader reports voice availability and assigns a usable English/default voice when available
 - [x] Voice reader prefers an available female English voice, with an English/default fallback
 - [x] Added detailed voice diagnostics and utterance lifecycle error reporting
+- [x] Documented Linux Chromium `--enable-speech-dispatcher` requirement for `synthesis-failed`/empty voice lists
 - [x] Removed the remaining persistent descriptive sentence from the monitor UI
 - [x] Removed the duplicate standalone Heart Rate statistics block from Overview
 - [x] Separated CSV export controls from Granularity and inspection controls to prevent grid overlap
