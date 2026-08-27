@@ -146,6 +146,8 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
    - [x] Keep the top form permanently dedicated to adding a new alert.
    - [x] Move edits into the selected alert row with inline fields and Save/Cancel actions.
    - [x] Return the row to its compact summary and icon actions after saving or cancelling.
+38. Remove confusing alert status copy.
+   - [x] Remove the redundant “Safe” label from alert rows while retaining threshold evaluation and hysteresis behavior.
 19. Add calendar-scale long-term graph granularity.
    - Add Week, Month, and Year choices to the existing granularity selector.
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.
