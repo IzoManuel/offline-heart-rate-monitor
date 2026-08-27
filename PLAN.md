@@ -376,3 +376,4 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
 - [x] Removed secondary respiratory detail rows from the BRPM display to reduce clutter
 - [x] Speech-synthesis research identified asynchronous browser voice loading and `voiceschanged` behavior
 - [x] Voice reader reports voice availability and assigns a usable English/default voice when available
+- [x] Voice reader prefers an available female English voice, with an English/default fallback
