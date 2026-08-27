@@ -378,3 +378,4 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
 - [x] Voice reader reports voice availability and assigns a usable English/default voice when available
 - [x] Voice reader prefers an available female English voice, with an English/default fallback
 - [x] Removed the remaining persistent descriptive sentence from the monitor UI
+- [x] Removed the duplicate standalone Heart Rate statistics block from Overview

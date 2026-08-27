@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ConnectionButton from './ConnectionButton';
-import HRDisplay from './HRDisplay';
-import Stats from './Stats';
 import HRVAnalysis from './HRVAnalysis';
 import RespiratoryAnalysis from './RespiratoryAnalysis';
 import DDFAAnalysis from './DDFAAnalysis';
@@ -501,8 +499,6 @@ function HRMonitor() {
                   averageOverride={scopedAverage('rmssd')}
                   sdnnAverageOverride={scopedAverage('sdnn')}
                 />
-                <HRDisplay currentHR={displayedCurrentHR} />
-                <Stats stats={{ ...displayedStats, average: Number.isFinite(scopedAverage('heartRate')) ? scopedAverage('heartRate').toFixed(1) : displayedStats?.average }} readingsCount={displayedReadingsCount} averageLabel={averageScope.label} />
                 <RespiratoryAnalysis
                   results={displayedResults}
                   rrCount={isConnected ? analysisState.rrCount : 0}
