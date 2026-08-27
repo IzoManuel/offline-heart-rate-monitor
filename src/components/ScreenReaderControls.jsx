@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { speakText, speechSupported, speechVoiceCount } from '../utils/speech';
+import { speakText, speechDiagnostics, speechSupported, speechVoiceCount } from '../utils/speech';
 
 const OPTIONS = [
   { key: 'ddfaAlpha10', label: 'DDFA Alpha10', unit: '' },
@@ -16,10 +16,18 @@ function ScreenReaderControls({ snapshot, disabled = false }) {
     try { return JSON.parse(globalThis.localStorage?.getItem('offline-hr-screen-reader-metrics')) || OPTIONS.map(option => option.key); } catch { return OPTIONS.map(option => option.key); }
   });
   const [status, setStatus] = useState('');
+  const [diagnostics, setDiagnostics] = useState(() => speechDiagnostics(window));
   const snapshotRef = useRef(snapshot);
   const selectedRef = useRef(selected);
   useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
   useEffect(() => { selectedRef.current = selected; }, [selected]);
+  useEffect(() => {
+    if (!speechSupported(window)) return undefined;
+    const refresh = () => setDiagnostics(speechDiagnostics(window));
+    refresh();
+    window.speechSynthesis.addEventListener?.('voiceschanged', refresh);
+    return () => window.speechSynthesis.removeEventListener?.('voiceschanged', refresh);
+  }, []);
 
   useEffect(() => { globalThis.localStorage?.setItem('offline-hr-screen-reader', String(enabled)); }, [enabled]);
   useEffect(() => { globalThis.localStorage?.setItem('offline-hr-screen-reader-interval', String(intervalSeconds)); }, [intervalSeconds]);
@@ -44,7 +52,8 @@ function ScreenReaderControls({ snapshot, disabled = false }) {
     const text = available.length
       ? available.map(option => `${option.label}, ${option.key === 'heartRate' ? Math.round(currentSnapshot[option.key]) : currentSnapshot[option.key].toFixed(1)} ${option.unit}`).join('. ')
       : 'Voice reader is ready.';
-    if (speakText(text, window)) setStatus(speechVoiceCount(window) ? 'Voice test started.' : 'Voice queued; no browser voices are currently available.');
+    const callbacks = { onstart: () => { setDiagnostics(speechDiagnostics(window)); setStatus('Voice playback started.'); }, onend: () => { setDiagnostics(speechDiagnostics(window)); setStatus('Voice playback finished.'); }, onerror: event => { setDiagnostics(speechDiagnostics(window)); setStatus(`Voice playback error: ${event.error || 'unknown error'}.`); } };
+    if (speakText(text, window, callbacks)) { setDiagnostics(speechDiagnostics(window)); setStatus(speechVoiceCount(window) ? 'Voice test queued.' : 'Voice queued; no browser voices are currently available.'); console.info('[Voice Reader] Test requested', speechDiagnostics(window)); }
     else setStatus('Speech playback is not supported by this browser.');
   };
 
@@ -55,6 +64,7 @@ function ScreenReaderControls({ snapshot, disabled = false }) {
       <label className="trend-switch"><input type="checkbox" checked={enabled} disabled={disabled || !speechSupported(window)} onChange={event => setEnabled(event.target.checked)} /><span>Read Metrics Aloud</span></label>
       {!speechSupported(window) && <p role="status">Speech playback is not supported by this browser.</p>}
       <div className="reader-actions"><button type="button" className="form-action" disabled={disabled || !speechSupported(window)} onClick={testVoice}>Test Voice</button>{status && <span role="status">{status}</span>}</div>
+      {speechSupported(window) && <details className="voice-diagnostics"><summary>Voice Diagnostics</summary><dl><div><dt>Available Voices</dt><dd>{diagnostics.voices}</dd></div><div><dt>Queue</dt><dd>{diagnostics.speaking ? 'Speaking' : diagnostics.pending ? 'Pending' : diagnostics.paused ? 'Paused' : 'Idle'}</dd></div>{diagnostics.voiceNames.length > 0 && <div><dt>Voices</dt><dd>{diagnostics.voiceNames.join(', ')}</dd></div>}</dl></details>}
       <div className="reader-settings">
         <label className="form-field"><span>Reading Interval</span><select value={intervalSeconds} disabled={!enabled} onChange={event => setIntervalSeconds(Number(event.target.value))}><option value="2">2 Seconds</option><option value="5">5 Seconds</option><option value="10">10 Seconds</option><option value="30">30 Seconds</option><option value="60">1 Minute</option></select></label>
         <fieldset className="metric-checkboxes" disabled={!enabled}><legend>Metrics To Read</legend>{OPTIONS.map(option => <label key={option.key}><input type="checkbox" checked={selected.includes(option.key)} onChange={event => setSelected(previous => event.target.checked ? [...previous, option.key] : previous.filter(key => key !== option.key))} /> <span>{option.label}</span></label>)}</fieldset>
