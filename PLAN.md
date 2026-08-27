@@ -233,6 +233,8 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
 
 ### Trend-graph and storage research decisions
 
+- [x] Updated active dashboard tabs to use a continuous container rule with the active tab visually connected to its panel
+
 - Use IndexedDB for chart history because it stores structured records asynchronously; keep localStorage only for the tiny latest-summary snapshot already established.
 - Bound storage by point count and latest-session scope instead of relying on browser quota. At 1,440 compact records, the app retains about two hours and remains far below typical origin quotas.
 - Treat browser persistence as best effort: storage may be cleared by the user or browser, so chart restoration must never be required for live monitoring.
