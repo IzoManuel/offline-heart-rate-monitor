@@ -142,6 +142,10 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
    - [x] Replace Unicode edit, delete, and battery symbols with Font Awesome icons.
    - [x] Preserve accessible names and tooltips for icon-only actions.
    - [ ] Verify icon rendering in the production PWA.
+37. Keep alert creation separate from row editing.
+   - [x] Keep the top form permanently dedicated to adding a new alert.
+   - [x] Move edits into the selected alert row with inline fields and Save/Cancel actions.
+   - [x] Return the row to its compact summary and icon actions after saving or cancelling.
 19. Add calendar-scale long-term graph granularity.
    - Add Week, Month, and Year choices to the existing granularity selector.
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.
