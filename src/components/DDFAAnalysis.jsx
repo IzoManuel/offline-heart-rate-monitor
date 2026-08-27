@@ -9,7 +9,7 @@ function DDFAAnalysis({ results, extrema, averageOverride }) {
       <h2 id="ddfa-heading">DDFA Analysis</h2>
       <p className="hrv-note">DDFA-2 Local Correlation Exponents · Updated {formatOccurrenceTime(results.analyzedAt)}</p>
       <div className="hrv-metrics-grid ddfa-headline-grid">
-        <div className="hrv-metric ddfa-headline-card">
+        <div className="hrv-metric metric-headline-card ddfa-headline-card">
           <span className="hrv-metric-label">DDFA α10</span>
           <span className="hrv-metric-value">{ddfa.available ? ddfa.alpha10.toFixed(2) : '—'}</span>
           <span className="hrv-metric-description">Unitless · 10-Beat Scale</span>

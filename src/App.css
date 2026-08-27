@@ -614,6 +614,12 @@ body {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.metric-headline-card {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid #d97706;
+}
+
 .ddfa-headline-card {
   border-left: 3px solid #d97706;
 }
@@ -1335,12 +1341,9 @@ body {
 }
 
 .respiratory-rate-card {
-  padding: var(--spacing-md);
   text-align: center;
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-sm);
-  border-left: 3px solid #d97706;
   min-height: 150px;
 }
 

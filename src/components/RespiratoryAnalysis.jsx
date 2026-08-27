@@ -23,7 +23,7 @@ function RespiratoryAnalysis({ results, rrCount, brpmExtrema, averageOverride })
 
       {respiration?.available && (
         <div className="respiratory-results">
-          <div className="respiratory-rate-card">
+          <div className="respiratory-rate-card metric-headline-card">
             <span className="respiratory-rate-label">2-Minute Rolling Estimate</span>
             <span className="respiratory-rate-value">
               {respiration.breathsPerMinute.toFixed(1)}
