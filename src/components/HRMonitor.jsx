@@ -537,10 +537,6 @@ function HRMonitor() {
         )}
       </main>
 
-      <aside className="about-app" aria-labelledby="about-app-heading">
-        <p id="about-app-heading">Private offline DDFA and HRV monitoring for Bluetooth heart-rate sensors; measurements stay in this browser unless exported.</p>
-      </aside>
-
       <footer className="footer">
         <p>© 2025. Licensed under MIT.</p>
       </footer>
