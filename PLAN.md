@@ -379,6 +379,7 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
 - [x] Voice reader prefers an available female English voice, with an English/default fallback
 - [x] Removed the remaining persistent descriptive sentence from the monitor UI
 - [x] Removed the duplicate standalone Heart Rate statistics block from Overview
+- [x] Separated CSV export controls from Granularity and inspection controls to prevent grid overlap
 - [x] Removed the secondary Latest DDFA Scale Profile visualization from the Overview
 - [x] Matched the Overview Breathing Rate card geometry and accent treatment to the DDFA card
 - [x] Refactored DDFA and Breathing Rate headline cards to share a semantic presentation class
