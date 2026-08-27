@@ -16,12 +16,14 @@ The monitor has grown from a single reading screen into a live dashboard with co
 1. **Connection context first** — device, connection state, saved-session status, and errors remain the first full-width region so the data's provenance is clear.
 2. **Primary workspace** — on expanded screens, metric cards occupy the flexible main column. DDFA, HRV, and BRPM remain full-width within that column; Heart Rate and statistics share a row where space allows.
 3. **Utility rail** — average scope, screen reader, and alerts are grouped in a narrow controls column. It is sticky on desktop so controls remain available while reading metrics, and returns to normal flow below the metrics on tablet/mobile.
-4. **Trends at the bottom** — the established full-width trend section remains after the live summary, preserving the user's requested reading order and giving charts the width they need.
-5. **Responsive reflow** — the workspace becomes one column below 900px; metric cards become one column below 600px; form grids similarly collapse without horizontal scrolling.
+4. **Tabbed dashboard sections** — Overview (live metrics), Trends (charts), and Tools (average scope, screen reader, and alerts) are mutually exclusive panels under one local tab list. Connection context stays visible above the tabs.
+5. **Responsive reflow** — the workspace becomes one column below 900px; metric cards become one column below 600px; form grids similarly collapse without horizontal scrolling. The tab list remains a compact, horizontally scrollable row when labels cannot fit.
 
 ## Interaction and accessibility
 
 Existing collapsibles, native form controls, headings, labels, keyboard chart inspection, and live-region readouts are retained. Layout changes use CSS grid and existing design tokens only. No metric is hidden or made dependent on scrolling behavior; the rail is a placement change, not a feature change.
+
+The tabs follow the WAI-ARIA Tabs pattern: one active tab, associated `tabpanel`, `aria-controls`/`aria-labelledby`, roving tab focus, and Left/Right (plus Home/End) keyboard navigation. Tabs are used here because these panels are related facets of the same monitor, and users generally do not need to compare the full controls and chart simultaneously. The Overview panel is the default and keeps the most important live values immediately visible.
 
 ## Visual constraints
 
@@ -29,4 +31,3 @@ Existing collapsibles, native form controls, headings, labels, keyboard chart in
 - Use existing spacing, borders, radii, and typography tokens.
 - Avoid adding decorative colors, dense navigation, or a second visual hierarchy.
 - Preserve comfortable touch targets and allow long metric values to wrap naturally on compact screens.
-

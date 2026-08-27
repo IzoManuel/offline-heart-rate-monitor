@@ -9,6 +9,7 @@ import TrendGraph from './TrendGraph';
 import ScreenReaderControls from './ScreenReaderControls';
 import AverageScopeControls from './AverageScopeControls';
 import WebAlarmControls from './WebAlarmControls';
+import DashboardTabs from './DashboardTabs';
 import {
   connectToHeartRateMonitor,
   startHeartRateNotifications,
@@ -486,8 +487,10 @@ function HRMonitor() {
 
         {hasDisplayedData && (
           <>
-            <div className="dashboard-workspace">
-              <section className="dashboard-metrics" aria-label="Current Metrics">
+            <DashboardTabs
+              overview={(
+                <section className="dashboard-workspace" aria-label="Current Metrics">
+                  <section className="dashboard-metrics">
                 <DDFAAnalysis results={displayedResults} extrema={displayedDDFAExtrema} averageOverride={scopedAverage('ddfaAlpha10')} />
                 <HRVAnalysis
                   isConnected={isConnected}
@@ -506,16 +509,22 @@ function HRMonitor() {
                   brpmExtrema={displayedBRPMExtrema}
                   averageOverride={scopedAverage('brpm')}
                 />
-              </section>
-              <aside className="dashboard-tools" aria-label="Controls">
+                  </section>
+                </section>
+              )}
+              tools={(
+                <aside className="dashboard-tools" aria-label="Controls">
                 <AverageScopeControls points={chartPoints} sessionStartedAt={sessionStartedAt ?? savedSession?.sessionStartedAt} onChange={setAverageScope} />
                 <ScreenReaderControls snapshot={screenReaderSnapshot} disabled={!hasDisplayedData} />
                 <WebAlarmControls snapshot={screenReaderSnapshot} />
-              </aside>
-            </div>
-            <section className="dashboard-trends" aria-label="Trends">
-              <TrendGraph points={chartPoints} />
-            </section>
+                </aside>
+              )}
+              trends={(
+                <section className="dashboard-trends" aria-label="Trends">
+                  <TrendGraph points={chartPoints} />
+                </section>
+              )}
+            />
           </>
         )}
 

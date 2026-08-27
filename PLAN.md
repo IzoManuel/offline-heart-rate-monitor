@@ -124,6 +124,11 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
    - [x] Document the layout decision: connection context first, primary metrics in a two-column desktop workspace, controls grouped in a utility rail, and trends full-width at the bottom; collapse to one column on compact screens.
    - [x] Preserve the existing color tokens, calculations, controls, card content, and accessibility semantics while changing layout only.
    - [ ] Complete visual review at desktop, tablet, and mobile widths after deployment.
+33. Add strategic tabs for the expanded web dashboard.
+   - [x] Research tab suitability, related-content grouping, and WAI-ARIA keyboard semantics.
+   - [x] Group mutually related content into Overview (live metrics), Trends (charts), and Tools (averages, speech, and alerts), while keeping connection context visible above the tabs.
+   - [x] Implement accessible tabs with tab/tabpanel relationships, roving focus, arrow/Home/End keyboard navigation, and compact-width horizontal scrolling.
+   - [ ] Complete visual review of all tab panels at desktop, tablet, and mobile widths after deployment.
 19. Add calendar-scale long-term graph granularity.
    - Add Week, Month, and Year choices to the existing granularity selector.
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.
