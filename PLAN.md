@@ -349,6 +349,7 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
 - [x] CSV export implemented from complete retained history
 - [x] Inspect Values control implemented without changing graph data
 - [x] Follow Latest, automatic pause, and Resume Live implemented
+- [x] Lock To Latest prevents hover inspection from leaving the newest point
 - [x] New chart controls reviewed for touch, keyboard, and mobile layout
 - [x] CSV and chart-mode automated tests pass
 - [x] Updated production build and offline PWA verification pass

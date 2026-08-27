@@ -3,7 +3,7 @@ import { formatOccurrenceTime } from '../utils/timeFormatting';
 import { aggregateChartPoints, findNearestPointIndex } from '../utils/chartStorage';
 import { calculateLinearAxis, formatAxisTick } from '../utils/chartScale';
 import { downloadChartCsv, EXPORT_GRANULARITIES } from '../utils/csvExport';
-import { latestInspectionIndex } from '../utils/chartInteraction';
+import { latestInspectionIndex, pointerInspectionEnabled } from '../utils/chartInteraction';
 
 const SERIES = [
   { key: 'ddfaAlpha10', label: 'DDFA α10', unit: 'Unitless', color: '#b45309', dash: '' },
@@ -122,6 +122,7 @@ function TrendGraph({ points }) {
   const [granularity, setGranularity] = useState('auto');
   const [inspectionEnabled, setInspectionEnabled] = useState(true);
   const [followLatest, setFollowLatest] = useState(true);
+  const [lockLatest, setLockLatest] = useState(false);
   const [exportGranularity, setExportGranularity] = useState(5000);
   const [exportFrom, setExportFrom] = useState('');
   const [exportTo, setExportTo] = useState('');
@@ -152,7 +153,10 @@ function TrendGraph({ points }) {
   }, [displayedPoints, inspectionEnabled, followLatest]);
 
   const inspectAtPointer = event => {
-    if (!inspectionEnabled || !displayedPoints.length) return;
+    if (!pointerInspectionEnabled(inspectionEnabled, lockLatest) || !displayedPoints.length) {
+      if (lockLatest && inspectionEnabled && displayedPoints.length) setInspectedIndex(displayedPoints.length - 1);
+      return;
+    }
     const bounds = event.currentTarget.getBoundingClientRect();
     const viewX = ((event.clientX - bounds.left) / bounds.width) * WIDTH;
     const ratio = Math.max(0, Math.min(1, (viewX - PADDING.left) / (WIDTH - PADDING.left - PADDING.right)));
@@ -219,6 +223,10 @@ function TrendGraph({ points }) {
             <label className="trend-switch">
               <input type="checkbox" checked={followLatest} disabled={!inspectionEnabled} onChange={event => event.target.checked ? resumeLive() : setFollowLatest(false)} />
               <span>Follow Latest</span>
+            </label>
+            <label className="trend-switch">
+              <input type="checkbox" checked={lockLatest} disabled={!inspectionEnabled} onChange={event => { setLockLatest(event.target.checked); if (event.target.checked) resumeLive(); }} />
+              <span>Lock To Latest</span>
             </label>
             <div className="export-controls" aria-label="CSV Export Options">
               <label><span>Export Resolution</span><select value={exportGranularity} onChange={event => setExportGranularity(['week', 'month', 'year'].includes(event.target.value) ? event.target.value : Number(event.target.value))}>{EXPORT_GRANULARITIES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
