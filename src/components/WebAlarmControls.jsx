@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ALARM_INTERVALS, ALARM_METRICS, alarmValue, isAlarmSafe, isAlarmViolated, loadWebAlarms, saveWebAlarms } from '../utils/webAlarms';
 import { speakText } from '../utils/speech';
+import { fileToDataUrl, playSound, saveCustomSound } from '../utils/audioFeedback';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faMusic, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 function WebAlarmControls({ snapshot }) {
   const [alarms, setAlarms] = useState(() => loadWebAlarms());
@@ -12,6 +13,7 @@ function WebAlarmControls({ snapshot }) {
   const [repeatSeconds, setRepeatSeconds] = useState(5);
   const [editingId, setEditingId] = useState(null);
   const [editingDraft, setEditingDraft] = useState(null);
+  const [customSoundName, setCustomSoundName] = useState('No file selected');
   const [permission, setPermission] = useState(() => 'Notification' in window ? Notification.permission : 'unsupported');
   const snapshotRef = useRef(snapshot);
   useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
@@ -27,6 +29,7 @@ function WebAlarmControls({ snapshot }) {
         if (alarm.lastTriggeredAt && now - alarm.lastTriggeredAt < alarm.repeatSeconds * 1000) return;
         const item = ALARM_METRICS.find(metricItem => metricItem.key === alarm.metric);
         const message = `Alert. ${item?.label} is ${alarm.condition} the limit. Current value ${value.toFixed(1)} ${item?.unit || 'unitless'}.`;
+        playSound('alarm', window);
         speakText(message, window);
         if (permission === 'granted') navigator.serviceWorker?.ready.then(registration => registration.showNotification('Heart Rate Monitor Alert', { body: message, tag: `metric-alert-${alarm.id}`, renotify: true }));
         update(alarm.id, { lastTriggeredAt: now });
@@ -43,6 +46,7 @@ function WebAlarmControls({ snapshot }) {
   return <details className="web-alerts"><summary>Metric Alerts</summary><p>Optional threshold alerts while this page is open and connected.</p>
     <div className="web-alert-form"><label className="form-field"><span>Metric</span><select value={metric} onChange={event => setMetric(event.target.value)}>{ALARM_METRICS.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label><label className="form-field"><span>Condition</span><select value={condition} onChange={event => setCondition(event.target.value)}><option value="below">Below</option><option value="above">Above</option></select></label><label className="form-field"><span>Threshold</span><input type="number" step="any" value={threshold} onChange={event => setThreshold(event.target.value)} /></label><label className="form-field"><span>Repeat</span><select value={repeatSeconds} onChange={event => setRepeatSeconds(Number(event.target.value))}>{ALARM_INTERVALS.map(seconds => <option key={seconds} value={seconds}>{seconds < 60 ? `${seconds} Seconds` : `${seconds / 60} Minutes`}</option>)}</select></label><button className="form-action" type="button" onClick={addAlarm}>Add Alert</button></div>
     {permission !== 'granted' && permission !== 'unsupported' && <button type="button" onClick={requestPermission}>Enable Browser Notifications</button>}
+    <div className="audio-upload"><span className="audio-upload-label">Custom Alert Sound</span><div className="audio-file-control"><input id="custom-alert-sound" type="file" accept="audio/*" onChange={async event => { const file = event.target.files?.[0]; if (file && file.size <= 1000000) { saveCustomSound('alarm', await fileToDataUrl(file)); setCustomSoundName(file.name); } }} /><label htmlFor="custom-alert-sound" className="audio-file-button"><FontAwesomeIcon icon={faMusic} aria-hidden="true" /> Choose Audio</label><span className="audio-file-name" title={customSoundName}>{customSoundName}</span></div></div>
     {permission === 'unsupported' && <p role="status">Browser notifications are not supported here; spoken alerts still work.</p>}
     <ul className="web-alert-list">{alarms.map(alarm => <li key={alarm.id}>{editingId === alarm.id && editingDraft ? <div className="alert-inline-edit"><label className="form-field"><span>Metric</span><select value={editingDraft.metric} onChange={event => setEditingDraft({ ...editingDraft, metric: event.target.value })}>{ALARM_METRICS.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label><label className="form-field"><span>Condition</span><select value={editingDraft.condition} onChange={event => setEditingDraft({ ...editingDraft, condition: event.target.value })}><option value="below">Below</option><option value="above">Above</option></select></label><label className="form-field"><span>Threshold</span><input type="number" step="any" value={editingDraft.threshold} onChange={event => setEditingDraft({ ...editingDraft, threshold: event.target.value })} /></label><label className="form-field"><span>Repeat</span><select value={editingDraft.repeatSeconds} onChange={event => setEditingDraft({ ...editingDraft, repeatSeconds: Number(event.target.value) })}>{ALARM_INTERVALS.map(seconds => <option key={seconds} value={seconds}>{seconds < 60 ? `${seconds} Seconds` : `${seconds / 60} Minutes`}</option>)}</select></label><div className="alert-actions"><button className="form-action" type="button" onClick={saveEditedAlarm}>Save</button><button className="form-cancel" type="button" onClick={cancelEdit}>Cancel</button></div></div> : <><div className="alert-summary"><strong>{ALARM_METRICS.find(item => item.key === alarm.metric)?.label}</strong><span>{alarm.condition === 'below' ? 'Below' : 'Above'} {alarm.threshold} · Every {alarm.repeatSeconds < 60 ? `${alarm.repeatSeconds}s` : `${alarm.repeatSeconds / 60}m`}</span></div><div className="alert-actions"><button className="icon-button" type="button" onClick={() => update(alarm.id, { enabled: !alarm.enabled })} aria-label={`${alarm.enabled ? 'Disable' : 'Enable'} alert`}>{alarm.enabled ? 'On' : 'Off'}</button><button className="icon-button" type="button" onClick={() => editAlarm(alarm)} aria-label="Edit alert" title="Edit alert"><FontAwesomeIcon icon={faPen} aria-hidden="true" /></button>{alarm.lastTriggeredAt && <button className="icon-button" type="button" onClick={() => update(alarm.id, { acknowledged: true })}>Acknowledge</button>}<button className="icon-button icon-danger" type="button" onClick={() => setAlarms(previous => previous.filter(item => item.id !== alarm.id))} aria-label="Delete alert" title="Delete alert"><FontAwesomeIcon icon={faTrash} aria-hidden="true" /></button></div></>}</li>)}</ul>
   </details>;

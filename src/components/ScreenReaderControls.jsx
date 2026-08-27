@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { speakText, speechDiagnostics, speechSupported, speechVoiceCount } from '../utils/speech';
 import { fileToDataUrl, playSound, saveCustomSound } from '../utils/audioFeedback';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMusic } from '@fortawesome/free-solid-svg-icons';
 
 const OPTIONS = [
   { key: 'ddfaAlpha10', label: 'DDFA Alpha10', unit: '' },
@@ -20,6 +22,7 @@ function ScreenReaderControls({ snapshot, disabled = false }) {
   const [diagnostics, setDiagnostics] = useState(() => speechDiagnostics(window));
   const [mode, setMode] = useState(() => globalThis.localStorage?.getItem('offline-hr-reader-mode') || 'sound');
   const [soundRepeat, setSoundRepeat] = useState(() => globalThis.localStorage?.getItem('offline-hr-sound-repeat') || 'repeat');
+  const [customSoundName, setCustomSoundName] = useState('No file selected');
   const snapshotRef = useRef(snapshot);
   const selectedRef = useRef(selected);
   useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
@@ -73,7 +76,7 @@ function ScreenReaderControls({ snapshot, disabled = false }) {
       <div className="reader-actions"><button type="button" className="form-action" disabled={disabled} onClick={testVoice}>{mode === 'sound' ? 'Test Sound' : 'Test Reader'}</button>{status && <span role="status">{status}</span>}</div>
       <label className="form-field"><span>Announcement Mode</span><select value={mode} onChange={event => { setMode(event.target.value); globalThis.localStorage?.setItem('offline-hr-reader-mode', event.target.value); }}><option value="sound">Soft Sound</option><option value="voice">Voice</option><option value="both">Voice And Soft Sound</option></select></label>
       {mode !== 'voice' && <label className="form-field"><span>Sound Playback</span><select value={soundRepeat} onChange={event => { setSoundRepeat(event.target.value); globalThis.localStorage?.setItem('offline-hr-sound-repeat', event.target.value); }}><option value="repeat">Repeat At Interval</option><option value="once">Play Once</option></select></label>}
-      <label className="audio-upload"><span>Custom Announcement Sound</span><input type="file" accept="audio/*" onChange={async event => { const file = event.target.files?.[0]; if (file && file.size <= 1000000) { saveCustomSound('announcement', await fileToDataUrl(file)); setStatus('Custom announcement sound saved.'); } }} /></label>
+      <div className="audio-upload"><span className="audio-upload-label">Custom Announcement Sound</span><div className="audio-file-control"><input id="custom-announcement-sound" type="file" accept="audio/*" onChange={async event => { const file = event.target.files?.[0]; if (file && file.size <= 1000000) { saveCustomSound('announcement', await fileToDataUrl(file)); setCustomSoundName(file.name); setStatus('Custom announcement sound saved.'); } }} /><label htmlFor="custom-announcement-sound" className="audio-file-button"><FontAwesomeIcon icon={faMusic} aria-hidden="true" /> Choose Audio</label><span className="audio-file-name" title={customSoundName}>{customSoundName}</span></div></div>
       {speechSupported(window) && <details className="voice-diagnostics"><summary>Voice Diagnostics</summary><dl><div><dt>Available Voices</dt><dd>{diagnostics.voices}</dd></div><div><dt>Queue</dt><dd>{diagnostics.speaking ? 'Speaking' : diagnostics.pending ? 'Pending' : diagnostics.paused ? 'Paused' : 'Idle'}</dd></div>{diagnostics.voiceNames.length > 0 && <div><dt>Voices</dt><dd>{diagnostics.voiceNames.join(', ')}</dd></div>}</dl></details>}
       <div className="reader-settings">
         <label className="form-field"><span>Reading Interval</span><select value={intervalSeconds} disabled={!enabled} onChange={event => setIntervalSeconds(Number(event.target.value))}><option value="2">2 Seconds</option><option value="5">5 Seconds</option><option value="10">10 Seconds</option><option value="30">30 Seconds</option><option value="60">1 Minute</option></select></label>
