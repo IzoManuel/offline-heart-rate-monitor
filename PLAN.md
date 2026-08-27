@@ -119,6 +119,11 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
    - [x] Review Screen Reader, Metric Alerts, Average Scope, and export control layout and identify inconsistent native styling.
    - [x] Apply shared labels, fields, borders, focus states, spacing, checkbox chips, and responsive form grids using the existing design tokens.
    - [x] Verify the production build and inspect the forms at desktop and narrow mobile widths.
+32. Reframe the expanded web monitor as a responsive dashboard.
+   - [x] Research health-summary and responsive dashboard patterns, including glanceable metric cards, progressive disclosure, and responsive grid reflow.
+   - [x] Document the layout decision: connection context first, primary metrics in a two-column desktop workspace, controls grouped in a utility rail, and trends full-width at the bottom; collapse to one column on compact screens.
+   - [x] Preserve the existing color tokens, calculations, controls, card content, and accessibility semantics while changing layout only.
+   - [ ] Complete visual review at desktop, tablet, and mobile widths after deployment.
 19. Add calendar-scale long-term graph granularity.
    - Add Week, Month, and Year choices to the existing granularity selector.
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.

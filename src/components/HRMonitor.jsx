@@ -454,7 +454,8 @@ function HRMonitor() {
       </header>
 
       <main className="main-content">
-        <ConnectionButton
+        <section className="dashboard-connection" aria-label="Connection">
+          <ConnectionButton
           isConnected={isConnected}
           isConnecting={isConnecting}
           deviceName={deviceName}
@@ -473,39 +474,48 @@ function HRMonitor() {
           savedSession={isConnected ? null : savedSession}
           onClearSavedData={handleClearSavedData}
           onConnect={handleConnect}
-          onDisconnect={handleDisconnect}
-        />
+            onDisconnect={handleDisconnect}
+          />
 
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+        </section>
 
         {hasDisplayedData && (
           <>
-            <AverageScopeControls points={chartPoints} sessionStartedAt={sessionStartedAt ?? savedSession?.sessionStartedAt} onChange={setAverageScope} />
-            <DDFAAnalysis results={displayedResults} extrema={displayedDDFAExtrema} averageOverride={scopedAverage('ddfaAlpha10')} />
-            <HRVAnalysis
-              isConnected={isConnected}
-              analysisState={analysisState}
-              results={displayedResults}
-              rmssdExtrema={displayedRMSSDExtrema}
-              sdnnExtrema={displayedSDNNExtrema}
-              averageOverride={scopedAverage('rmssd')}
-              sdnnAverageOverride={scopedAverage('sdnn')}
-            />
-            <HRDisplay currentHR={displayedCurrentHR} />
-            <Stats stats={{ ...displayedStats, average: Number.isFinite(scopedAverage('heartRate')) ? scopedAverage('heartRate').toFixed(1) : displayedStats?.average }} readingsCount={displayedReadingsCount} averageLabel={averageScope.label} />
-            <RespiratoryAnalysis
-              results={displayedResults}
-              rrCount={isConnected ? analysisState.rrCount : 0}
-              brpmExtrema={displayedBRPMExtrema}
-              averageOverride={scopedAverage('brpm')}
-            />
-            <TrendGraph points={chartPoints} />
-            <ScreenReaderControls snapshot={screenReaderSnapshot} disabled={!hasDisplayedData} />
-            <WebAlarmControls snapshot={screenReaderSnapshot} />
+            <div className="dashboard-workspace">
+              <section className="dashboard-metrics" aria-label="Current Metrics">
+                <DDFAAnalysis results={displayedResults} extrema={displayedDDFAExtrema} averageOverride={scopedAverage('ddfaAlpha10')} />
+                <HRVAnalysis
+                  isConnected={isConnected}
+                  analysisState={analysisState}
+                  results={displayedResults}
+                  rmssdExtrema={displayedRMSSDExtrema}
+                  sdnnExtrema={displayedSDNNExtrema}
+                  averageOverride={scopedAverage('rmssd')}
+                  sdnnAverageOverride={scopedAverage('sdnn')}
+                />
+                <HRDisplay currentHR={displayedCurrentHR} />
+                <Stats stats={{ ...displayedStats, average: Number.isFinite(scopedAverage('heartRate')) ? scopedAverage('heartRate').toFixed(1) : displayedStats?.average }} readingsCount={displayedReadingsCount} averageLabel={averageScope.label} />
+                <RespiratoryAnalysis
+                  results={displayedResults}
+                  rrCount={isConnected ? analysisState.rrCount : 0}
+                  brpmExtrema={displayedBRPMExtrema}
+                  averageOverride={scopedAverage('brpm')}
+                />
+              </section>
+              <aside className="dashboard-tools" aria-label="Controls">
+                <AverageScopeControls points={chartPoints} sessionStartedAt={sessionStartedAt ?? savedSession?.sessionStartedAt} onChange={setAverageScope} />
+                <ScreenReaderControls snapshot={screenReaderSnapshot} disabled={!hasDisplayedData} />
+                <WebAlarmControls snapshot={screenReaderSnapshot} />
+              </aside>
+            </div>
+            <section className="dashboard-trends" aria-label="Trends">
+              <TrendGraph points={chartPoints} />
+            </section>
           </>
         )}
 
