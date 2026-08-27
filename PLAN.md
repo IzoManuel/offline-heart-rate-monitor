@@ -373,5 +373,6 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
 - [x] Web Metric Alerts support persisted thresholds, repeat cadence, hysteresis, speech, notifications, and acknowledgement
 - [x] Web alert cadence is stable under high-frequency sensor updates
 - [x] Overview marker card consistency research and shared geometry implemented
+- [x] Removed secondary respiratory detail rows from the BRPM display to reduce clutter
 - [x] Speech-synthesis research identified asynchronous browser voice loading and `voiceschanged` behavior
 - [x] Voice reader reports voice availability and assigns a usable English/default voice when available

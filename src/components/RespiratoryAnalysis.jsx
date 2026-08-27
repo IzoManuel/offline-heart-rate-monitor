@@ -36,12 +36,6 @@ function RespiratoryAnalysis({ results, rrCount, brpmExtrema, averageOverride })
             </div>
           </div>
 
-          <dl className="respiratory-details">
-            <div><dt>Signal Quality</dt><dd>{respiration.quality}</dd></div>
-            <div><dt>RR Intervals</dt><dd>{respiration.rrCount}</dd></div>
-            <div><dt>Window</dt><dd>{Math.round(respiration.durationSeconds)} sec</dd></div>
-            <div><dt>Method</dt><dd>RR Spectral Estimate</dd></div>
-          </dl>
         </div>
       )}
     </section>
