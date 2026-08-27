@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { speakText, speechSupported } from '../utils/speech';
+import { speakText, speechSupported, speechVoiceCount } from '../utils/speech';
 
 const OPTIONS = [
   { key: 'ddfaAlpha10', label: 'DDFA Alpha10', unit: '' },
@@ -44,7 +44,7 @@ function ScreenReaderControls({ snapshot, disabled = false }) {
     const text = available.length
       ? available.map(option => `${option.label}, ${option.key === 'heartRate' ? Math.round(currentSnapshot[option.key]) : currentSnapshot[option.key].toFixed(1)} ${option.unit}`).join('. ')
       : 'Voice reader is ready.';
-    if (speakText(text, window)) setStatus('Voice test started.');
+    if (speakText(text, window)) setStatus(speechVoiceCount(window) ? 'Voice test started.' : 'Voice queued; no browser voices are currently available.');
     else setStatus('Speech playback is not supported by this browser.');
   };
 
