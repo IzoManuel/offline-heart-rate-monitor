@@ -133,6 +133,11 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
    - [x] Confirm the explanatory block is outside the tab panels and therefore repeats as persistent context while switching tabs.
    - [x] Replace the title, expandable explanation, and multiple paragraphs with one concise privacy and purpose sentence.
    - [ ] Verify the shortened copy in the deployed PWA.
+35. Restore reliable speech feedback and polish alert management.
+   - [x] Investigate runtime speech behavior beyond static tests, including mobile synthesis pause/voice initialization and user-gesture limitations.
+   - [x] Add a direct Test Voice action, visible status feedback, cancellation/resume handling, and shared speech helper for the reader and alerts.
+   - [x] Redesign alert rows with grouped summaries, accessible edit/delete icon actions, enable state, acknowledgement, and inline edit/cancel behavior.
+   - [ ] Verify voice playback and alert notifications on a supported physical browser/device.
 19. Add calendar-scale long-term graph granularity.
    - Add Week, Month, and Year choices to the existing granularity selector.
    - Bucket weeks from local Monday midnight and bucket months/years at their actual local calendar boundaries rather than fixed-duration approximations.
