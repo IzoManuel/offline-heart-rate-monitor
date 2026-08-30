@@ -390,3 +390,13 @@ Parity contract: ../SHARED_FEATURES.md. Add every new user-facing feature to bot
 - [x] Removed the secondary Latest DDFA Scale Profile visualization from the Overview
 - [x] Matched the Overview Breathing Rate card geometry and accent treatment to the DDFA card
 - [x] Refactored DDFA and Breathing Rate headline cards to share a semantic presentation class
+
+## Browser storage performance and resilience improvements (planned)
+
+Research confirms that `localStorage` is synchronous and should remain limited to small preferences, while IndexedDB is asynchronous but still incurs structured-clone, transaction, and compaction costs. Browser quotas are dynamic and best-effort data may be evicted under storage pressure. These improvements are planned and intentionally not implemented yet:
+
+- [ ] Move custom announcement and alert audio from Base64 `localStorage` values into IndexedDB (or another binary-oriented origin store).
+- [ ] Debounce or batch latest-session snapshot writes so frequent live sensor updates do not repeatedly block the main thread with synchronous `localStorage` serialization.
+- [ ] Keep a managed IndexedDB connection open during recording instead of reopening a database connection for every five-second chart sample.
+- [ ] Add a user-facing storage diagnostics panel using `navigator.storage.estimate()`, showing estimated usage/quota, chart-point count, and warning thresholds. (Awaiting explicit implementation approval.)
+- [ ] Request `navigator.storage.persist()` where supported and explain the result, while retaining clear-data controls and graceful behavior when persistence is denied.
