@@ -169,6 +169,18 @@ export async function loadChartPoints() {
   }
 }
 
+export async function countChartPoints() {
+  try {
+    return await transact('readonly', (store, resolve, reject) => {
+      const request = store.count();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  } catch {
+    return 0;
+  }
+}
+
 export async function saveChartPoint(point) {
   try {
     await transact('readwrite', (store, resolve, reject) => {

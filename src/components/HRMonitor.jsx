@@ -7,6 +7,7 @@ import TrendGraph from './TrendGraph';
 import ScreenReaderControls from './ScreenReaderControls';
 import AverageScopeControls from './AverageScopeControls';
 import WebAlarmControls from './WebAlarmControls';
+import StorageDiagnostics from './StorageDiagnostics';
 import DashboardTabs from './DashboardTabs';
 import {
   connectToHeartRateMonitor,
@@ -513,6 +514,7 @@ function HRMonitor() {
                 <AverageScopeControls points={chartPoints} sessionStartedAt={sessionStartedAt ?? savedSession?.sessionStartedAt} onChange={setAverageScope} />
                 <ScreenReaderControls snapshot={screenReaderSnapshot} disabled={!hasDisplayedData} />
                 <WebAlarmControls snapshot={screenReaderSnapshot} />
+                <StorageDiagnostics />
                 </aside>
               )}
               trends={(
