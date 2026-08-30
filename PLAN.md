@@ -400,3 +400,14 @@ Research confirms that `localStorage` is synchronous and should remain limited t
 - [ ] Keep a managed IndexedDB connection open during recording instead of reopening a database connection for every five-second chart sample.
 - [x] Add a user-facing storage diagnostics panel using `navigator.storage.estimate()`, showing estimated usage/quota, chart-point count, and warning thresholds.
 - [ ] Request `navigator.storage.persist()` where supported and explain the result, while retaining clear-data controls and graceful behavior when persistence is denied.
+
+## Optional cross-device cloud backup (planned, not implemented)
+
+- [ ] Keep local IndexedDB/localStorage as the default offline-first source of truth.
+- [ ] Add an explicit opt-in Google Drive backup using Google OAuth and the user’s own Drive storage; do not operate an application database for the first version.
+- [ ] Encrypt backup payloads in the browser before upload so Google Drive stores ciphertext rather than readable health measurements.
+- [ ] Add explicit backup, restore, replace, and delete actions; never silently merge anonymous local data into an authenticated profile.
+- [ ] Scope local profiles and cloud files by authenticated account so multiple people sharing one browser do not see one another’s data.
+- [ ] Add conflict handling based on backup revision/time and preserve manual encrypted export/import as the recovery path.
+- [ ] Document provider quotas, OAuth consent, API-policy changes, account loss, and the requirement for internet during sign-in/sync.
+- [ ] Do not implement cloud sync or authentication until the security, privacy, encryption-key recovery, and data-deletion design is approved.
