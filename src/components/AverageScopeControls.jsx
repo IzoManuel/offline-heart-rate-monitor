@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from 'react';
+import { useEffect } from 'react';
+import { isLiveAverageScope } from '../utils/averageScope';
 
 const METRICS = [
   ['heartRate', 'Heart Rate'], ['ddfaAlpha10', 'DDFA α10'], ['rmssd', 'RMSSD'], ['sdnn', 'SDNN'], ['brpm', 'BRPM']
@@ -18,6 +20,9 @@ function AverageScopeControls({ points, sessionStartedAt, onChange }) {
     return [key, selected.length ? selected.reduce((sum, point) => sum + point[key], 0) / selected.length : null];
   })), [points, range]);
   const rangeValid = scope !== 'custom' || ((!from || Number.isFinite(range.from)) && (!to || Number.isFinite(range.to)) && range.from <= range.to);
+  useEffect(() => {
+    if (isLiveAverageScope(scope)) onChange({ values, label: scope === 'session' ? 'Current Session' : 'Today' });
+  }, [scope, values, onChange]);
   const apply = () => onChange({ values, label: scope === 'session' ? 'Current Session' : scope === 'today' ? 'Today' : 'Custom Range' });
   return <section className="average-scope-controls" aria-labelledby="average-scope-heading">
     <h2 id="average-scope-heading">Card Average Scope</h2><p>Choose which retained measurements supply the Average values on the cards.</p>

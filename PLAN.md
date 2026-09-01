@@ -411,3 +411,8 @@ Research confirms that `localStorage` is synchronous and should remain limited t
 - [ ] Add conflict handling based on backup revision/time and preserve manual encrypted export/import as the recovery path.
 - [ ] Document provider quotas, OAuth consent, API-policy changes, account loss, and the requirement for internet during sign-in/sync.
 - [ ] Do not implement cloud sync or authentication until the security, privacy, encryption-key recovery, and data-deletion design is approved.
+
+## Live scoped averages
+
+- [x] Automatically refresh Current Session and Today card averages as retained samples arrive.
+- [x] Keep Custom Date/Time Range averages manually applied so a reviewed fixed range remains stable.
