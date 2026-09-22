@@ -446,6 +446,9 @@ function HRMonitor() {
     heartRate: displayedCurrentHR,
     brpm: displayedResults?.respiration?.breathsPerMinute ?? displayedResults?.brpm
   };
+  useEffect(() => {
+    window.electronAPI?.updateTrayMetrics?.({ ...screenReaderSnapshot, connected: isConnected });
+  }, [isConnected, screenReaderSnapshot.ddfaAlpha10, screenReaderSnapshot.rmssd, screenReaderSnapshot.sdnn, screenReaderSnapshot.heartRate, screenReaderSnapshot.brpm]);
 
   return (
     <div className="hr-monitor">
