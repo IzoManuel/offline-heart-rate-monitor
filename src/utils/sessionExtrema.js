@@ -36,3 +36,39 @@ export function calculateHeartRateStats(readings) {
     minAt: extrema.min.occurredAt
   };
 }
+
+// Keep the live BPM summary bounded. Storing every notification in React state
+// causes an ever-growing array and clones that array on every sensor update.
+export const EMPTY_HEART_RATE_STATS = Object.freeze({
+  average: 0,
+  max: 0,
+  min: 0,
+  maxAt: null,
+  minAt: null,
+  count: 0,
+  total: 0
+});
+
+export function updateHeartRateStats(stats, value, occurredAt) {
+  if (!Number.isFinite(value) || value <= 0) return stats;
+
+  const previous = stats?.count ? stats : EMPTY_HEART_RATE_STATS;
+  const count = previous.count + 1;
+  const total = previous.total + value;
+  const minPoint = previous.count === 0 || value < previous.min
+    ? { value, occurredAt }
+    : { value: previous.min, occurredAt: previous.minAt };
+  const maxPoint = previous.count === 0 || value > previous.max
+    ? { value, occurredAt }
+    : { value: previous.max, occurredAt: previous.maxAt };
+
+  return {
+    average: Math.round(total / count),
+    max: maxPoint.value,
+    min: minPoint.value,
+    maxAt: maxPoint.occurredAt,
+    minAt: minPoint.occurredAt,
+    count,
+    total
+  };
+}

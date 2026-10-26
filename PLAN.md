@@ -416,3 +416,14 @@ Research confirms that `localStorage` is synchronous and should remain limited t
 
 - [x] Automatically refresh Current Session and Today card averages as retained samples arrive.
 - [x] Keep Custom Date/Time Range averages manually applied so a reviewed fixed range remains stable.
+
+## Long-running Electron memory resilience
+
+Research basis: Chromium's memory guidance identifies unbounded data structures, retained listeners, detached DOM, and allocation-heavy closures as common leak patterns; Electron's renderer is a Chromium process and should be profiled separately from the main process. The Linux shell's renderer was retaining every BPM notification in React state and cloning the full array on each notification.
+
+- [x] Replace unbounded live BPM-reading history with a constant-size running summary (count, total, min/max, occurrence times).
+- [x] Preserve session averages, extrema, sample counts, saved-session restoration, and existing chart/HRV history behavior.
+- [x] Add regression coverage proving the summary remains bounded and ignores invalid readings.
+- [x] Run full web tests, production build, PWA verification, and SEO verification.
+- [x] Rebuild the Linux Electron AppImage with the bounded renderer state.
+- [ ] Long-run soak test on the target Linux desktop (8+ hours) and record renderer/main RSS before and after.

@@ -27,7 +27,7 @@ import {
   pruneRollingReadings,
   timestampReading
 } from '../utils/rollingAnalysis';
-import { calculateHeartRateStats, updateExtrema } from '../utils/sessionExtrema';
+import { EMPTY_HEART_RATE_STATS, updateHeartRateStats, updateExtrema } from '../utils/sessionExtrema';
 import {
   clearSessionSnapshot,
   createSessionSnapshot,
@@ -47,7 +47,7 @@ function HRMonitor() {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [currentHR, setCurrentHR] = useState(0);
-  const [heartRateReadings, setHeartRateReadings] = useState([]);
+  const [heartRateStats, setHeartRateStats] = useState(EMPTY_HEART_RATE_STATS);
   const [deviceName, setDeviceName] = useState('');
   const [batteryLevel, setBatteryLevel] = useState(null);
   const [deviceInfo, setDeviceInfo] = useState({});
@@ -89,10 +89,7 @@ function HRMonitor() {
     });
   };
 
-  const stats = useMemo(
-    () => calculateHeartRateStats(heartRateReadings),
-    [heartRateReadings]
-  );
+  const stats = heartRateStats;
 
   // Register playback callbacks with debug system
   useEffect(() => {
@@ -104,7 +101,7 @@ function HRMonitor() {
         setDeviceName(sessionData.deviceName + ' (Playback)');
         setIsConnected(true);
         setCurrentHR(0);
-        setHeartRateReadings([]);
+        setHeartRateStats(EMPTY_HEART_RATE_STATS);
         setSessionStartedAt(Date.now());
         setHRVResults(null);
         setRMSSDExtrema(null);
@@ -117,10 +114,7 @@ function HRMonitor() {
       onReading: (data) => {
         // Playback reading callback
         setCurrentHR(data.heartRate);
-        setHeartRateReadings(previous => [
-          ...previous,
-          { value: data.heartRate, receivedAt: Date.now() }
-        ]);
+        setHeartRateStats(previous => updateHeartRateStats(previous, data.heartRate, Date.now()));
 
         collectRRReading(data);
       },
@@ -187,7 +181,7 @@ function HRMonitor() {
       // Connect to device
       const gattServer = await connectToHeartRateMonitor();
       setCurrentHR(0);
-      setHeartRateReadings([]);
+      setHeartRateStats(EMPTY_HEART_RATE_STATS);
       setSessionStartedAt(Date.now());
       setHRVResults(null);
       setRMSSDExtrema(null);
@@ -218,10 +212,7 @@ function HRMonitor() {
         debugRecorder.recordReading(data);
 
         setCurrentHR(data.heartRate);
-        setHeartRateReadings(previous => [
-          ...previous,
-          { value: data.heartRate, receivedAt: Date.now() }
-        ]);
+        setHeartRateStats(previous => updateHeartRateStats(previous, data.heartRate, Date.now()));
 
         collectRRReading(data);
       });
@@ -392,13 +383,13 @@ function HRMonitor() {
   }, [isConnected, Boolean(savedSession)]);
 
   useEffect(() => {
-    if (!isConnected || !sessionStartedAt || heartRateReadings.length === 0) return;
+    if (!isConnected || !sessionStartedAt || heartRateStats.count === 0) return;
 
     const snapshot = createSessionSnapshot({
       sessionStartedAt,
       currentHR,
       stats,
-      readingsCount: heartRateReadings.length,
+      readingsCount: heartRateStats.count,
       analysisResults: hrvResults,
       ddfaExtrema,
       rmssdExtrema,
@@ -412,7 +403,7 @@ function HRMonitor() {
     sessionStartedAt,
     currentHR,
     stats,
-    heartRateReadings.length,
+    heartRateStats.count,
     hrvResults,
     ddfaExtrema,
     rmssdExtrema,
@@ -430,7 +421,7 @@ function HRMonitor() {
   const displayedCurrentHR = isConnected ? currentHR : savedSession?.currentHR ?? 0;
   const displayedStats = isConnected ? stats : savedSession?.stats;
   const displayedReadingsCount = isConnected
-    ? heartRateReadings.length
+    ? heartRateStats.count
     : savedSession?.readingsCount ?? 0;
   const displayedResults = isConnected ? hrvResults : savedSession?.analysisResults;
   const displayedRMSSDExtrema = isConnected ? rmssdExtrema : savedSession?.rmssdExtrema;
