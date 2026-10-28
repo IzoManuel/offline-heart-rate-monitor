@@ -55,3 +55,13 @@ test('updates live BPM stats without retaining individual readings', () => {
   assert.deepEqual({ value: stats.max, occurredAt: stats.maxAt }, { value: 91, occurredAt: 3000 });
   assert.strictEqual(updateHeartRateStats(stats, 0, 4000), stats);
 });
+
+test('stays bounded across an accelerated multi-day sensor soak', () => {
+  let stats = EMPTY_HEART_RATE_STATS;
+  for (let index = 0; index < 2_000_000; index += 1) {
+    stats = updateHeartRateStats(stats, 55 + (index % 90), index * 1000);
+  }
+  assert.equal(stats.count, 2_000_000);
+  assert.equal(stats.total > 0, true);
+  assert.equal(Object.hasOwn(stats, 'readings'), false);
+});

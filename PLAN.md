@@ -437,5 +437,6 @@ Research basis: Chromium's memory guidance identifies unbounded data structures,
 - [x] Preserve session averages, extrema, sample counts, saved-session restoration, and existing chart/HRV history behavior.
 - [x] Add regression coverage proving the summary remains bounded and ignores invalid readings.
 - [x] Run full web tests, production build, PWA verification, and SEO verification.
+- [x] Add an accelerated two-million-sample live BPM soak test proving no per-reading history is retained.
 - [x] Rebuild the Linux Electron AppImage with the bounded renderer state.
 - [ ] Long-run soak test on the target Linux desktop (8+ hours) and record renderer/main RSS before and after.
