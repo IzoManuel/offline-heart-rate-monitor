@@ -422,6 +422,7 @@ Research confirms that `localStorage` is synchronous and should remain limited t
 Research basis: AWS Cost Explorer and similar analytics tools use a calendar range picker with clear start/end states and highlighted in-between dates. Native date/time controls provide accessible local-date semantics, while a small in-app calendar is needed here to make the selected range visibly continuous across browsers.
 
 - [x] Replace manual ISO datetime entry for custom card averages with a visual calendar range picker.
+- [x] Reuse the same visual range picker for CSV export date filters.
 - [x] Highlight the selected start/end dates and every day between them.
 - [x] Use whole local days by default, avoiding unnecessary time entry.
 - [x] Add optional start/end time controls for users who need sub-day precision.

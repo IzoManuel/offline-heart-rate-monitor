@@ -4,6 +4,7 @@ import { aggregateChartPoints, findNearestPointIndex } from '../utils/chartStora
 import { calculateLinearAxis, formatAxisTick } from '../utils/chartScale';
 import { downloadChartCsv, EXPORT_GRANULARITIES } from '../utils/csvExport';
 import { latestInspectionIndex, pointerInspectionEnabled } from '../utils/chartInteraction';
+import { DateRangePicker } from './AverageScopeControls';
 
 const SERIES = [
   { key: 'ddfaAlpha10', label: 'DDFA α10', unit: 'Unitless', color: '#b45309', dash: '' },
@@ -124,8 +125,11 @@ function TrendGraph({ points }) {
   const [followLatest, setFollowLatest] = useState(true);
   const [lockLatest, setLockLatest] = useState(false);
   const [exportGranularity, setExportGranularity] = useState(5000);
-  const [exportFrom, setExportFrom] = useState('');
-  const [exportTo, setExportTo] = useState('');
+  const [exportFromDate, setExportFromDate] = useState('');
+  const [exportToDate, setExportToDate] = useState('');
+  const [exportStartTime, setExportStartTime] = useState('00:00');
+  const [exportEndTime, setExportEndTime] = useState('23:59');
+  const [exportIncludeTime, setExportIncludeTime] = useState(false);
   const storedPoints = useMemo(
     () => points.filter(point => Number.isFinite(point.timestamp)).sort((a, b) => a.timestamp - b.timestamp),
     [points]
@@ -185,10 +189,12 @@ function TrendGraph({ points }) {
     const values = displayedPoints.map(point => point[series.key]).filter(Number.isFinite);
     return { ...series, min: values.length ? Math.min(...values) : null, max: values.length ? Math.max(...values) : null, latest: values.at(-1) };
   });
+  const exportFrom = exportFromDate ? (exportIncludeTime ? new Date(`${exportFromDate}T${exportStartTime}`).getTime() : new Date(`${exportFromDate}T00:00`).getTime()) : null;
+  const exportTo = exportToDate ? (exportIncludeTime ? new Date(`${exportToDate}T${exportEndTime}`).getTime() : new Date(`${exportToDate}T23:59:59.999`).getTime()) : null;
   const exportOptions = {
     granularity: exportGranularity,
-    from: exportFrom ? new Date(exportFrom).getTime() : null,
-    to: exportTo ? new Date(exportTo).getTime() : null
+    from: exportFrom,
+    to: exportTo
   };
 
   return (
@@ -230,8 +236,9 @@ function TrendGraph({ points }) {
             </label>
             <div className="export-controls" aria-label="CSV Export Options">
               <label><span>Export Resolution</span><select value={exportGranularity} onChange={event => setExportGranularity(['week', 'month', 'year'].includes(event.target.value) ? event.target.value : Number(event.target.value))}>{EXPORT_GRANULARITIES.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-              <label><span>From</span><input type="datetime-local" value={exportFrom} onChange={event => setExportFrom(event.target.value)} /></label>
-              <label><span>To</span><input type="datetime-local" value={exportTo} onChange={event => setExportTo(event.target.value)} /></label>
+              <div className="export-date-range"><span>Export Date Range</span><DateRangePicker startDate={exportFromDate} endDate={exportToDate} onChange={({ startDate, endDate }) => { setExportFromDate(startDate); setExportToDate(endDate); }} /><small>Select dates visually; whole days are used by default.</small></div>
+              <label className="trend-switch export-time-toggle"><input type="checkbox" checked={exportIncludeTime} onChange={event => setExportIncludeTime(event.target.checked)} /><span>Use Specific Times</span></label>
+              {exportIncludeTime && <div className="export-time-fields"><label><span>Start Time</span><input type="time" value={exportStartTime} onChange={event => setExportStartTime(event.target.value)} /></label><label><span>End Time</span><input type="time" value={exportEndTime} onChange={event => setExportEndTime(event.target.value)} /></label></div>}
               <button type="button" className="trend-action" onClick={() => downloadChartCsv(storedPoints, exportOptions)} disabled={!storedPoints.length || (exportFrom && exportTo && exportOptions.from > exportOptions.to)}>Export CSV</button>
             </div>
           </div>

@@ -30,7 +30,7 @@ function monthDays(month) {
   });
 }
 
-function DateRangePicker({ startDate, endDate, onChange }) {
+export function DateRangePicker({ startDate, endDate, onChange }) {
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(() => parseDateKey(startDate) || new Date());
   const days = monthDays(month);
