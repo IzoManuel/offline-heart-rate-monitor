@@ -417,6 +417,17 @@ Research confirms that `localStorage` is synchronous and should remain limited t
 - [x] Automatically refresh Current Session and Today card averages as retained samples arrive.
 - [x] Keep Custom Date/Time Range averages manually applied so a reviewed fixed range remains stable.
 
+## Visual Average Date-Range Selection
+
+Research basis: AWS Cost Explorer and similar analytics tools use a calendar range picker with clear start/end states and highlighted in-between dates. Native date/time controls provide accessible local-date semantics, while a small in-app calendar is needed here to make the selected range visibly continuous across browsers.
+
+- [x] Replace manual ISO datetime entry for custom card averages with a visual calendar range picker.
+- [x] Highlight the selected start/end dates and every day between them.
+- [x] Use whole local days by default, avoiding unnecessary time entry.
+- [x] Add optional start/end time controls for users who need sub-day precision.
+- [x] Keep custom ranges manually applied and preserve existing average calculations.
+- [x] Run web tests and production build after the picker change.
+
 ## Long-running Electron memory resilience
 
 Research basis: Chromium's memory guidance identifies unbounded data structures, retained listeners, detached DOM, and allocation-heavy closures as common leak patterns; Electron's renderer is a Chromium process and should be profiled separately from the main process. The Linux shell's renderer was retaining every BPM notification in React state and cloning the full array on each notification.
