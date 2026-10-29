@@ -7,6 +7,7 @@ function metricWeight(point, metric) {
 const DATABASE_NAME = 'offline-hr-monitor-history';
 const DATABASE_VERSION = 1;
 const STORE_NAME = 'trend-points';
+let databasePromise;
 
 export function boundChartPoints(points, limit = CHART_POINT_LIMIT) {
   return points
@@ -126,7 +127,9 @@ export function compactChartPoints(points) {
 }
 
 function openDatabase() {
-  return new Promise((resolve, reject) => {
+  if (databasePromise) return databasePromise;
+
+  databasePromise = new Promise((resolve, reject) => {
     if (!globalThis.indexedDB) {
       reject(new Error('IndexedDB is unavailable'));
       return;
@@ -139,9 +142,23 @@ function openDatabase() {
         database.createObjectStore(STORE_NAME, { keyPath: 'timestamp' });
       }
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const database = request.result;
+      // Keep one connection for the app lifetime. Opening and closing an
+      // IndexedDB connection for every five-second sample can retain native
+      // Chromium/SQLite resources during very long sessions.
+      database.onversionchange = () => {
+        database.close();
+        databasePromise = undefined;
+      };
+      resolve(database);
+    };
+    request.onerror = () => {
+      databasePromise = undefined;
+      reject(request.error);
+    };
   });
+  return databasePromise;
 }
 
 function transact(mode, operation) {
@@ -149,11 +166,8 @@ function transact(mode, operation) {
     const transaction = database.transaction(STORE_NAME, mode);
     const store = transaction.objectStore(STORE_NAME);
     operation(store, resolve, reject);
-    transaction.oncomplete = () => database.close();
-    transaction.onerror = () => {
-      database.close();
-      reject(transaction.error);
-    };
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
   }));
 }
 
