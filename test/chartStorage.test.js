@@ -5,8 +5,53 @@ import {
   boundChartPoints,
   calendarBucketStart,
   compactChartPoints,
-  findNearestPointIndex
+  countChartPoints,
+  findNearestPointIndex,
+  saveChartPoint
 } from '../src/utils/chartStorage.js';
+
+function createIndexedDbSoakDouble() {
+  const records = new Map();
+  let openCount = 0;
+  const request = (result, callback) => {
+    const operation = { result, onsuccess: null, onerror: null };
+    queueMicrotask(() => {
+      callback?.();
+      operation.onsuccess?.({ target: operation });
+    });
+    return operation;
+  };
+  const database = {
+    objectStoreNames: { contains: () => true },
+    transaction: () => {
+      const transaction = { oncomplete: null, onerror: null };
+      const store = {
+        put: value => request(value, () => records.set(value.timestamp, value)),
+        count: () => request(records.size),
+        getAll: () => request([...records.values()]),
+        clear: () => request(undefined, () => records.clear())
+      };
+      queueMicrotask(() => transaction.oncomplete?.());
+      return { objectStore: () => store, ...transaction };
+    },
+    close: () => {}
+  };
+  return {
+    indexedDB: {
+      open: () => {
+        openCount += 1;
+        const opened = { result: database, onupgradeneeded: null, onsuccess: null, onerror: null };
+        queueMicrotask(() => {
+          opened.onupgradeneeded?.({ target: opened });
+          opened.onsuccess?.({ target: opened });
+        });
+        return opened;
+      }
+    },
+    get openCount() { return openCount; },
+    get size() { return records.size; }
+  };
+}
 
 test('sorts chart history and retains only the newest bounded points', () => {
   const points = [5, 1, 4, 2, 3].map(timestamp => ({ timestamp }));
@@ -85,4 +130,22 @@ test('aggregates calendar periods while preserving separate sessions', () => {
   assert.equal(monthly[0].heartRate, 70);
   assert.equal(monthly[1].heartRate, 100);
   assert.equal(monthly[2].heartRate, 90);
+});
+
+test('simulates a multi-day five-second charting session without reopening IndexedDB per sample', async () => {
+  const fake = createIndexedDbSoakDouble();
+  const originalIndexedDb = globalThis.indexedDB;
+  globalThis.indexedDB = fake.indexedDB;
+  try {
+    // 20,000 five-second samples is more than a day and exercises the same
+    // save/compact path used by a continuously connected sensor.
+    for (let index = 0; index < 20_000; index += 1) {
+      await saveChartPoint({ timestamp: index * 5_000, sessionStartedAt: 1, heartRate: 60 + (index % 30) });
+    }
+    assert.equal(fake.openCount, 1);
+    assert.equal(fake.size <= 10_000, true);
+    assert.equal(await countChartPoints(), fake.size);
+  } finally {
+    globalThis.indexedDB = originalIndexedDb;
+  }
 });
