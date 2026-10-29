@@ -397,7 +397,8 @@ Research confirms that `localStorage` is synchronous and should remain limited t
 
 - [ ] Move custom announcement and alert audio from Base64 `localStorage` values into IndexedDB (or another binary-oriented origin store).
 - [ ] Debounce or batch latest-session snapshot writes so frequent live sensor updates do not repeatedly block the main thread with synchronous `localStorage` serialization.
-- [ ] Keep a managed IndexedDB connection open during recording instead of reopening a database connection for every five-second chart sample.
+- [x] Keep a managed IndexedDB connection open during recording instead of reopening a database connection for every five-second chart sample.
+- [x] Add an IndexedDB-backed live-session soak test covering 20,000 five-second chart writes, compaction, and connection reuse.
 - [x] Add a user-facing storage diagnostics panel using `navigator.storage.estimate()`, showing estimated usage/quota, chart-point count, and warning thresholds.
 - [ ] Request `navigator.storage.persist()` where supported and explain the result, while retaining clear-data controls and graceful behavior when persistence is denied.
 
