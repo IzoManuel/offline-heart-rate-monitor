@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   ANALYSIS_REFRESH_INTERVAL,
   ANALYSIS_WINDOW_DURATION,
+  appendRollingReading,
   analyzeRollingWindow,
   isRollingWindowReady,
   pruneRollingReadings,
@@ -36,6 +37,15 @@ test('prunes readings older than two minutes without splitting into overlapping 
 
   const retained = pruneRollingReadings(input, now);
   assert.deepEqual(retained.map(reading => reading.receivedAt), [80000, 200000]);
+});
+
+test('appends high-frequency RR readings into one bounded rolling buffer', () => {
+  const readings = [];
+  for (let index = 0; index < 2_000_000; index += 1) {
+    appendRollingReading(readings, { rrIntervals: [800] }, index * 1000);
+  }
+  assert.equal(readings.length, ANALYSIS_WINDOW_DURATION / 1000 + 1);
+  assert.equal(readings[0].receivedAt, (2_000_000 - 121) * 1000);
 });
 
 test('recomputes results from the retained rolling data every refresh', () => {

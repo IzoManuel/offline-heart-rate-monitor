@@ -23,9 +23,9 @@ import {
   ANALYSIS_REFRESH_INTERVAL,
   ANALYSIS_WINDOW_DURATION,
   analyzeRollingWindow,
+  appendRollingReading,
   isRollingWindowReady,
   pruneRollingReadings,
-  timestampReading
 } from '../utils/rollingAnalysis';
 import { EMPTY_HEART_RATE_STATS, updateHeartRateStats, updateExtrema } from '../utils/sessionExtrema';
 import {
@@ -79,15 +79,45 @@ function HRMonitor() {
     if (!data.rrIntervals?.length) return;
 
     const now = Date.now();
-    setHRVReadings(previous => {
-      const retained = pruneRollingReadings(
-        [...previous, timestampReading(data, now)],
-        now
-      );
-      hrvReadingsRef.current = retained;
-      return retained;
-    });
+    appendRollingReading(hrvReadingsRef.current, data, now);
   };
+
+  // The Linux memory soak harness drives this same state/update path without
+  // requiring a physical Bluetooth device. It is only exposed by the Electron
+  // preload when HR_MONITOR_SOAK=1.
+  useEffect(() => {
+    if (!window.electronAPI?.isSoakTest) return undefined;
+    const start = () => {
+      setIsConnected(true);
+      setCurrentHR(0);
+      setHeartRateStats(EMPTY_HEART_RATE_STATS);
+      setSessionStartedAt(Date.now());
+      setHRVResults(null);
+      setRMSSDExtrema(null);
+      setDDFAExtrema(null);
+      setSDNNExtrema(null);
+      setBRPMExtrema(null);
+      setError('');
+    };
+    const reading = event => {
+      const data = event.detail;
+      if (!data || !Number.isFinite(data.heartRate)) return;
+      setCurrentHR(data.heartRate);
+      setHeartRateStats(previous => updateHeartRateStats(previous, data.heartRate, Date.now()));
+      collectRRReading(data);
+    };
+    const chartPoint = event => {
+      if (event.detail) saveChartPoint(event.detail);
+    };
+    window.addEventListener('hr-monitor-soak-start', start);
+    window.addEventListener('hr-monitor-soak-reading', reading);
+    window.addEventListener('hr-monitor-soak-chart-point', chartPoint);
+    return () => {
+      window.removeEventListener('hr-monitor-soak-start', start);
+      window.removeEventListener('hr-monitor-soak-reading', reading);
+      window.removeEventListener('hr-monitor-soak-chart-point', chartPoint);
+    };
+  }, []);
 
   const stats = heartRateStats;
 
@@ -295,12 +325,13 @@ function HRMonitor() {
       const now = Date.now();
       setHRVClock(now);
 
-      if (!isRollingWindowReady(analysisStartedAt, now)) return;
-      if (now - lastAnalysisAtRef.current < ANALYSIS_REFRESH_INTERVAL) return;
-
       const retained = pruneRollingReadings(hrvReadingsRef.current, now);
       hrvReadingsRef.current = retained;
       setHRVReadings(retained);
+
+      if (!isRollingWindowReady(analysisStartedAt, now)) return;
+      if (now - lastAnalysisAtRef.current < ANALYSIS_REFRESH_INTERVAL) return;
+
       const results = analyzeRollingWindow(retained, now);
       setHRVResults(results);
       if (!results.error) {

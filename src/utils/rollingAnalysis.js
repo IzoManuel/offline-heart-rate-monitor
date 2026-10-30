@@ -18,6 +18,14 @@ export function pruneRollingReadings(readings, now) {
   return readings.filter(reading => reading.receivedAt >= cutoff && reading.receivedAt <= now);
 }
 
+export function appendRollingReading(readings, reading, now) {
+  readings.push(timestampReading(reading, now));
+  const cutoff = now - ANALYSIS_WINDOW_DURATION;
+  while (readings.length && readings[0].receivedAt < cutoff) readings.shift();
+  while (readings.length && readings.at(-1).receivedAt > now) readings.pop();
+  return readings;
+}
+
 export function analyzeRollingWindow(readings, analyzedAt) {
   const windowReadings = pruneRollingReadings(readings, analyzedAt);
   return {
