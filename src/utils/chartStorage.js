@@ -7,7 +7,12 @@ function metricWeight(point, metric) {
 const DATABASE_NAME = 'offline-hr-monitor-history';
 const DATABASE_VERSION = 1;
 const STORE_NAME = 'trend-points';
+const CHART_WRITE_BATCH_SIZE = 12;
+const CHART_WRITE_FLUSH_MS = 30_000;
 let databasePromise;
+let pendingChartPoints = [];
+let pendingFlushTimer;
+let flushChain = Promise.resolve();
 
 export function boundChartPoints(points, limit = CHART_POINT_LIMIT) {
   return points
@@ -173,6 +178,7 @@ function transact(mode, operation) {
 
 export async function loadChartPoints() {
   try {
+    await flushChartPoints();
     return await transact('readonly', (store, resolve, reject) => {
       const request = store.getAll();
       request.onsuccess = () => resolve(boundChartPoints(request.result));
@@ -185,6 +191,7 @@ export async function loadChartPoints() {
 
 export async function countChartPoints() {
   try {
+    await flushChartPoints();
     return await transact('readonly', (store, resolve, reject) => {
       const request = store.count();
       request.onsuccess = () => resolve(request.result);
@@ -195,30 +202,31 @@ export async function countChartPoints() {
   }
 }
 
-export async function saveChartPoint(point) {
+async function persistChartBatch(points) {
+  if (!points.length) return true;
   try {
     await transact('readwrite', (store, resolve, reject) => {
-      const putRequest = store.put(point);
-      putRequest.onerror = () => reject(putRequest.error);
-      putRequest.onsuccess = () => {
-        const countRequest = store.count();
-        countRequest.onerror = () => reject(countRequest.error);
-        countRequest.onsuccess = () => {
-          if (countRequest.result <= CHART_POINT_LIMIT) {
+      points.forEach(point => {
+        const putRequest = store.put(point);
+        putRequest.onerror = () => reject(putRequest.error);
+      });
+      const countRequest = store.count();
+      countRequest.onerror = () => reject(countRequest.error);
+      countRequest.onsuccess = () => {
+        if (countRequest.result <= CHART_POINT_LIMIT) {
+          resolve();
+          return;
+        }
+        const allRequest = store.getAll();
+        allRequest.onerror = () => reject(allRequest.error);
+        allRequest.onsuccess = () => {
+          let compacted = compactChartPoints(allRequest.result);
+          while (compacted.length > CHART_POINT_LIMIT) compacted = compactChartPoints(compacted);
+          const clearRequest = store.clear();
+          clearRequest.onerror = () => reject(clearRequest.error);
+          clearRequest.onsuccess = () => {
+            compacted.forEach(compactedPoint => store.put(compactedPoint));
             resolve();
-            return;
-          }
-          const allRequest = store.getAll();
-          allRequest.onerror = () => reject(allRequest.error);
-          allRequest.onsuccess = () => {
-            let compacted = compactChartPoints(allRequest.result);
-            while (compacted.length > CHART_POINT_LIMIT) compacted = compactChartPoints(compacted);
-            const clearRequest = store.clear();
-            clearRequest.onerror = () => reject(clearRequest.error);
-            clearRequest.onsuccess = () => {
-              compacted.forEach(compactedPoint => store.put(compactedPoint));
-              resolve();
-            };
           };
         };
       };
@@ -229,8 +237,35 @@ export async function saveChartPoint(point) {
   }
 }
 
+export function flushChartPoints() {
+  if (pendingFlushTimer) {
+    clearTimeout(pendingFlushTimer);
+    pendingFlushTimer = undefined;
+  }
+  if (!pendingChartPoints.length) return flushChain;
+  const batch = pendingChartPoints;
+  pendingChartPoints = [];
+  flushChain = flushChain.then(() => persistChartBatch(batch));
+  return flushChain;
+}
+
+export function saveChartPoint(point) {
+  if (!Number.isFinite(point?.timestamp)) return false;
+  pendingChartPoints.push(point);
+  if (pendingChartPoints.length >= CHART_WRITE_BATCH_SIZE) {
+    void flushChartPoints();
+  } else if (!pendingFlushTimer) {
+    pendingFlushTimer = setTimeout(() => { void flushChartPoints(); }, CHART_WRITE_FLUSH_MS);
+  }
+  return true;
+}
+
 export async function clearChartPoints() {
   try {
+    pendingChartPoints = [];
+    if (pendingFlushTimer) clearTimeout(pendingFlushTimer);
+    pendingFlushTimer = undefined;
+    await flushChain;
     await transact('readwrite', (store, resolve, reject) => {
       const request = store.clear();
       request.onsuccess = () => resolve();

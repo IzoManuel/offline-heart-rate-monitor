@@ -13,6 +13,7 @@ import {
 function createIndexedDbSoakDouble() {
   const records = new Map();
   let openCount = 0;
+  let transactionCount = 0;
   const request = (result, callback) => {
     const operation = { result, onsuccess: null, onerror: null };
     queueMicrotask(() => {
@@ -24,6 +25,7 @@ function createIndexedDbSoakDouble() {
   const database = {
     objectStoreNames: { contains: () => true },
     transaction: () => {
+      transactionCount += 1;
       const transaction = { oncomplete: null, onerror: null };
       const store = {
         put: value => request(value, () => records.set(value.timestamp, value)),
@@ -49,6 +51,7 @@ function createIndexedDbSoakDouble() {
       }
     },
     get openCount() { return openCount; },
+    get transactionCount() { return transactionCount; },
     get size() { return records.size; }
   };
 }
@@ -143,6 +146,7 @@ test('simulates a multi-day five-second charting session without reopening Index
       await saveChartPoint({ timestamp: index * 5_000, sessionStartedAt: 1, heartRate: 60 + (index % 30) });
     }
     assert.equal(fake.openCount, 1);
+    assert.equal(fake.transactionCount <= 2_000, true);
     assert.equal(fake.size <= 10_000, true);
     assert.equal(await countChartPoints(), fake.size);
   } finally {
