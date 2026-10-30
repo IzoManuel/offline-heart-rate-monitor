@@ -135,7 +135,7 @@ test('aggregates calendar periods while preserving separate sessions', () => {
   assert.equal(monthly[2].heartRate, 90);
 });
 
-test('simulates a multi-day five-second charting session without reopening IndexedDB per sample', async () => {
+test('simulates a multi-day five-second charting session with bounded IndexedDB writes', async () => {
   const fake = createIndexedDbSoakDouble();
   const originalIndexedDb = globalThis.indexedDB;
   globalThis.indexedDB = fake.indexedDB;

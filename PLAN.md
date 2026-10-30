@@ -399,6 +399,7 @@ Research confirms that `localStorage` is synchronous and should remain limited t
 - [ ] Debounce or batch latest-session snapshot writes so frequent live sensor updates do not repeatedly block the main thread with synchronous `localStorage` serialization.
 - [x] Keep a managed IndexedDB connection open during recording instead of reopening a database connection for every five-second chart sample.
 - [x] Add an IndexedDB-backed live-session soak test covering 20,000 five-second chart writes, compaction, and connection reuse.
+- [x] Batch chart persistence into bounded write transactions so a multi-hour session does not create one native IndexedDB transaction per five-second sample.
 - [x] Add a user-facing storage diagnostics panel using `navigator.storage.estimate()`, showing estimated usage/quota, chart-point count, and warning thresholds.
 - [ ] Request `navigator.storage.persist()` where supported and explain the result, while retaining clear-data controls and graceful behavior when persistence is denied.
 
