@@ -75,11 +75,10 @@ function HRMonitor() {
   const currentHRRef = useRef(0);
   const hrvResultsRef = useRef(null);
 
-  const collectRRReading = (data) => {
+  const collectRRReading = (data, receivedAt = Date.now()) => {
     if (!data.rrIntervals?.length) return;
 
-    const now = Date.now();
-    appendRollingReading(hrvReadingsRef.current, data, now);
+    appendRollingReading(hrvReadingsRef.current, data, receivedAt);
   };
 
   // The Linux memory soak harness drives this same state/update path without
@@ -87,11 +86,12 @@ function HRMonitor() {
   // preload when HR_MONITOR_SOAK=1.
   useEffect(() => {
     if (!window.electronAPI?.isSoakTest) return undefined;
-    const start = () => {
+    const start = event => {
+      const startedAt = Number.isFinite(event?.detail?.startedAt) ? event.detail.startedAt : Date.now();
       setIsConnected(true);
       setCurrentHR(0);
       setHeartRateStats(EMPTY_HEART_RATE_STATS);
-      setSessionStartedAt(Date.now());
+      setSessionStartedAt(startedAt);
       setHRVResults(null);
       setRMSSDExtrema(null);
       setDDFAExtrema(null);
@@ -104,7 +104,7 @@ function HRMonitor() {
       if (!data || !Number.isFinite(data.heartRate)) return;
       setCurrentHR(data.heartRate);
       setHeartRateStats(previous => updateHeartRateStats(previous, data.heartRate, Date.now()));
-      collectRRReading(data);
+      collectRRReading(data, data.receivedAt);
     };
     const chartPoint = event => {
       if (event.detail) saveChartPoint(event.detail);
@@ -118,6 +118,32 @@ function HRMonitor() {
       window.removeEventListener('hr-monitor-soak-chart-point', chartPoint);
     };
   }, []);
+
+  const processRollingAnalysis = now => {
+    if (!isConnected || analysisStartedAt === null) return;
+    setHRVClock(now);
+    const retained = pruneRollingReadings(hrvReadingsRef.current, now);
+    hrvReadingsRef.current = retained;
+    setHRVReadings(retained);
+    if (!isRollingWindowReady(analysisStartedAt, now)) return;
+    if (now - lastAnalysisAtRef.current < ANALYSIS_REFRESH_INTERVAL) return;
+    const results = analyzeRollingWindow(retained, now);
+    setHRVResults(results);
+    if (!results.error) {
+      if (results.ddfa?.available) setDDFAExtrema(previous => updateExtrema(previous, results.ddfa.alpha10, now));
+      setRMSSDExtrema(previous => updateExtrema(previous, results.rmssd, now));
+      setSDNNExtrema(previous => updateExtrema(previous, results.sdnn, now));
+    }
+    if (results.respiration.available) setBRPMExtrema(previous => updateExtrema(previous, results.respiration.breathsPerMinute, now));
+    lastAnalysisAtRef.current = now;
+  };
+
+  useEffect(() => {
+    if (!window.electronAPI?.isSoakTest) return undefined;
+    const tick = event => processRollingAnalysis(event.detail?.now ?? Date.now());
+    window.addEventListener('hr-monitor-soak-tick', tick);
+    return () => window.removeEventListener('hr-monitor-soak-tick', tick);
+  }, [isConnected, analysisStartedAt]);
 
   const stats = heartRateStats;
 
@@ -322,33 +348,7 @@ function HRMonitor() {
     if (!isConnected || analysisStartedAt === null) return;
 
     const timer = setInterval(() => {
-      const now = Date.now();
-      setHRVClock(now);
-
-      const retained = pruneRollingReadings(hrvReadingsRef.current, now);
-      hrvReadingsRef.current = retained;
-      setHRVReadings(retained);
-
-      if (!isRollingWindowReady(analysisStartedAt, now)) return;
-      if (now - lastAnalysisAtRef.current < ANALYSIS_REFRESH_INTERVAL) return;
-
-      const results = analyzeRollingWindow(retained, now);
-      setHRVResults(results);
-      if (!results.error) {
-        if (results.ddfa?.available) {
-          setDDFAExtrema(previous => updateExtrema(previous, results.ddfa.alpha10, now));
-        }
-        setRMSSDExtrema(previous => updateExtrema(previous, results.rmssd, now));
-        setSDNNExtrema(previous => updateExtrema(previous, results.sdnn, now));
-      }
-      if (results.respiration.available) {
-        setBRPMExtrema(previous => updateExtrema(
-          previous,
-          results.respiration.breathsPerMinute,
-          now
-        ));
-      }
-      lastAnalysisAtRef.current = now;
+      processRollingAnalysis(Date.now());
     }, 1000);
 
     return () => clearInterval(timer);
