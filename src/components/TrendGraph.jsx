@@ -283,4 +283,4 @@ function TrendGraph({ points }) {
   );
 }
 
-export default TrendGraph;
+export default React.memo(TrendGraph, (previous, next) => previous.points === next.points);
