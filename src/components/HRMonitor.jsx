@@ -72,6 +72,7 @@ function HRMonitor() {
   const [averageScope, setAverageScope] = useState({ values: {}, label: 'Current Session' });
   const hrvReadingsRef = useRef([]);
   const lastAnalysisAtRef = useRef(null);
+  const lastPublishedReadingsAtRef = useRef(null);
   const currentHRRef = useRef(0);
   const hrvResultsRef = useRef(null);
 
@@ -124,7 +125,10 @@ function HRMonitor() {
     setHRVClock(now);
     const retained = pruneRollingReadings(hrvReadingsRef.current, now);
     hrvReadingsRef.current = retained;
-    setHRVReadings(retained);
+    if (lastPublishedReadingsAtRef.current === null || now - lastPublishedReadingsAtRef.current >= ANALYSIS_REFRESH_INTERVAL) {
+      setHRVReadings(retained);
+      lastPublishedReadingsAtRef.current = now;
+    }
     if (!isRollingWindowReady(analysisStartedAt, now)) return;
     if (now - lastAnalysisAtRef.current < ANALYSIS_REFRESH_INTERVAL) return;
     const results = analyzeRollingWindow(retained, now);
@@ -327,6 +331,7 @@ function HRMonitor() {
       setHRVReadings([]);
       hrvReadingsRef.current = [];
       lastAnalysisAtRef.current = null;
+      lastPublishedReadingsAtRef.current = null;
       return;
     }
 
@@ -341,6 +346,7 @@ function HRMonitor() {
     setSDNNExtrema(null);
     setBRPMExtrema(null);
     lastAnalysisAtRef.current = startedAt;
+    lastPublishedReadingsAtRef.current = startedAt;
   }, [isConnected]);
 
   // Recompute one bounded two-minute rolling window every five seconds.

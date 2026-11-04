@@ -15,6 +15,7 @@ const SERIAL_NUMBER_CHAR_UUID = 0x2A25;
 const HARDWARE_REVISION_CHAR_UUID = 0x2A27;
 const FIRMWARE_REVISION_CHAR_UUID = 0x2A26;
 const SOFTWARE_REVISION_CHAR_UUID = 0x2A28;
+const notificationHandlers = new WeakMap();
 
 /**
  * Parse heart rate measurement data according to Bluetooth Heart Rate Profile
@@ -105,11 +106,15 @@ export async function startHeartRateNotifications(server, callback) {
   await characteristic.startNotifications();
 
   // Add event listener for heart rate changes
-  characteristic.addEventListener('characteristicvaluechanged', (event) => {
+  const previousHandler = notificationHandlers.get(characteristic);
+  if (previousHandler) characteristic.removeEventListener('characteristicvaluechanged', previousHandler);
+  const handler = (event) => {
     const value = event.target.value;
     const heartRateData = parseHeartRate(value);
     callback(heartRateData);
-  });
+  };
+  characteristic.addEventListener('characteristicvaluechanged', handler);
+  notificationHandlers.set(characteristic, handler);
 
   return characteristic;
 }
@@ -121,6 +126,11 @@ export async function startHeartRateNotifications(server, callback) {
 export async function stopHeartRateNotifications(characteristic) {
   if (characteristic) {
     await characteristic.stopNotifications();
+    const handler = notificationHandlers.get(characteristic);
+    if (handler) {
+      characteristic.removeEventListener('characteristicvaluechanged', handler);
+      notificationHandlers.delete(characteristic);
+    }
   }
 }
 
