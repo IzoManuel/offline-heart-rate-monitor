@@ -5,6 +5,7 @@ import { calculateLinearAxis, formatAxisTick } from '../utils/chartScale';
 import { downloadChartCsv, EXPORT_GRANULARITIES } from '../utils/csvExport';
 import { latestInspectionIndex, pointerInspectionEnabled } from '../utils/chartInteraction';
 import { DateRangePicker } from './AverageScopeControls';
+import { areTrendGraphPropsEqual } from '../utils/trendGraphMemo';
 
 const SERIES = [
   { key: 'ddfaAlpha10', label: 'DDFA α10', unit: 'Unitless', color: '#b45309', dash: '' },
@@ -283,4 +284,4 @@ function TrendGraph({ points }) {
   );
 }
 
-export default React.memo(TrendGraph, (previous, next) => previous.points === next.points);
+export default React.memo(TrendGraph, areTrendGraphPropsEqual);
